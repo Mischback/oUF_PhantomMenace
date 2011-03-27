@@ -1,0 +1,14 @@
+## Interface: 40000
+## Author: Mischback
+## Title: oUF|cffffd700 PhantomMenace|r
+## RequiredDeps: oUF
+## OptionalDeps: oUF_ResComm, oUF_boring_totembar
+## X-Category: UnitFrame
+## SavedVariablesPerCharacter: PhantomMenaceOptions
+## SavedVariables: PhantomMenaceAuraList
+
+settings.lua
+lib.lua
+menu.lua
+core.lua
+layout.lua
