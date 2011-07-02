@@ -17,6 +17,7 @@ _, lib.playerclass = UnitClass('player')				-- the players class (this is used t
 
 lib.dispelAbility = settings.src.dispelAbilities[lib.playerclass] or nil
 
+
 	--[[ Debugging to ChatFrame
 		VOID debugging(STRING text)
 	]]

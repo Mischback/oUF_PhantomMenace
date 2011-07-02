@@ -21,9 +21,23 @@ local settings = {}
 	
 	]]
 	settings.src = {
+		['unitNames'] = {
+			['UIParent'] = UIParent,
+			['player'] = 'oUF_PhantomMenace_player',
+			['pet'] = 'oUF_PhantomMenace_pet',
+			['target'] = 'oUF_PhantomMenace_target',
+			['focus'] = 'oUF_PhantomMenace_focus',
+			['targettarget'] = 'oUF_PhantomMenace_targettarget',
+			['focustarget'] = 'oUF_PhantomMenace_focustarget',
+			['party'] = 'oUF_PhantomMenace_party',
+			['raid'] = 'oUF_PhantomMenace_raid',
+			['maintank'] = 'oUF_PredatorSimple_MT',
+			['boss'] = 'oUF_PhantomMenace_boss1',
+		},
 		['fonts'] = {
 			['value'] = [[Interface\AddOns\oUF_PhantomMenace\media\accid__.ttf]],
-			['name'] = [[Interface\AddOns\oUF_PhantomMenace\media\cityburn.ttf]],
+			['name'] = [[Interface\AddOns\oUF_PhantomMenace\media\Cartoon_Regular.ttf]],
+			-- ['name'] = [[Interface\AddOns\oUF_PhantomMenace\media\cityburn.ttf]],
 		},
 		['textures'] = {
 			['bar'] = [[Interface\AddOns\oUF_PhantomMenace\media\bar]],
@@ -74,6 +88,22 @@ local settings = {}
 			['SHAMAN'] = 77130,		-- "Improved Clease Spirit"
 			['PALADIN'] = 53551,	-- "Sacred Cleansing"
 			['DRUID'] = 88423,		-- "Natures's Cure"
+		},
+		['partyStyles'] = {
+			['big'] = 'big',
+			['raid'] = 'raid'
+		},
+		['partyLayouts'] = {
+			['2x2'] = '2x2', 		-- 2 columns, 2 rows
+			['1x4'] = '1x4', 		-- 1 column, 4 rows
+			['4x1'] = '4x1'			-- 4 columns, 1 row
+		},
+		['raidLayouts'] = {
+			-- this references the number of rows of that layout, number of columns is calculated
+			['2'] = '2', 	-- 2 rows and either 5 columns (raid10), 7 columns (raid15, no player), 12 columns (raid25) or 20 columns (raid40)
+			['3'] = '3',	-- 3 rows and either 3 columns (raid10, no player), 5 columns (raid15) or 8 columns (raid25, no player) or 13 columns (raid 40, no player)
+			['5'] = '5', 	-- 5 rows and either 2 columns (raid10), 3 columns (raid15), 5 columns (raid25) or 8 columns (raid40) --> basically the default!
+			['10'] = '10'	-- 10 rows and 1 column (raid10 only)
 		}
 	}
 
@@ -90,8 +120,9 @@ local settings = {}
 			['height'] = 25, 
 			['fontSize'] = 18,
 		},
+		['partyStyle'] = 'big',
 		['partyLayout'] = '2x2',
-		['raidLayout'] = 'columns',
+		['raidLayout'] = '5',
 		['playerBuffs'] = {
 			['mode'] = 'blacklist',
 			['list'] = {
@@ -163,6 +194,8 @@ local settings = {}
 			['ghost'] = 'ghost', 
 			['offline'] = 'off', 
 		},
+		['showPlayerPower'] = true,
+		['showTargetPower'] = true,
 	}
 
 
@@ -176,6 +209,13 @@ local settings = {}
 			['anchorPoint'] = 'TOPRIGHT',
 			['anchorToPoint'] = 'CENTER',
 			['anchorToFrame'] = 'UIParent',
+		},
+		['pet'] = {
+			['x'] = -25,
+			['y'] = 0,
+			['anchorPoint'] = 'TOPRIGHT',
+			['anchorToPoint'] = 'TOPLEFT',
+			['anchorToFrame'] = 'oUF_PhantomMenace_player',
 		},
 		['target'] = {
 			['x'] = 100,
@@ -228,7 +268,7 @@ local settings = {}
 		},
 		['raid_healer'] = {
 			['x'] = 250,
-			['y'] = 100,
+			['y'] = 50,
 			['anchorPoint'] = 'TOPLEFT',
 			['anchorToPoint'] = 'CENTER',
 			['anchorToFrame'] = 'UIParent',

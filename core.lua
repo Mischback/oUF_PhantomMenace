@@ -306,8 +306,8 @@ local settings = ns.settings							-- get the settings
 		local cb = CreateFrame('StatusBar', nil, UIParent)
 		cb:SetStatusBarTexture(settings.src.textures.bar, 'ARTWORK')
 		cb:SetStatusBarColor(0.86, 0.5, 0, 1)
-		cb:SetWidth(settings.options.castbar.width)
-		cb:SetHeight(settings.options.castbar.height)
+		cb:SetWidth(PhantomMenaceOptions.castbar.width)
+		cb:SetHeight(PhantomMenaceOptions.castbar.height)
 		cb:SetPoint('CENTER', UIParent, 'CENTER', 15, -175)
 
 		cb.bg = cb:CreateTexture(nil, 'BACKGROUND')
@@ -322,11 +322,11 @@ local settings = ns.settings							-- get the settings
 		cb.SafeZone:SetTexture(settings.src.textures.bar)
 		cb.SafeZone:SetVertexColor(.69,.31,.31)
 
-		cb.Text = lib.CreateFontObject(cb, settings.options.castbar.fontSize, settings.src.fonts.value)
+		cb.Text = lib.CreateFontObject(cb, PhantomMenaceOptions.castbar.fontSize, settings.src.fonts.value)
 		cb.Text:SetPoint('LEFT', 3, 2)
 		cb.Text:SetTextColor(0.84, 0.75, 0.65)
 
-		cb.Time = lib.CreateFontObject(cb, settings.options.castbar.fontSize, settings.src.fonts.value)
+		cb.Time = lib.CreateFontObject(cb, PhantomMenaceOptions.castbar.fontSize, settings.src.fonts.value)
 		cb.Time:SetPoint('RIGHT', -3, 2)
 		cb.Time:SetTextColor(0.84, 0.75, 0.65)
 		cb.Time:SetJustifyH('RIGHT')
@@ -447,8 +447,12 @@ local settings = ns.settings							-- get the settings
 	core.UpdateHealth_player = function(health, unit, min, max)
 		if ( min ~= max ) then
 			health.value:SetFormattedText('|cffCC0000-%s|r|cffCCCCCC | %s|r', lib.Shorten((max-min)), lib.Shorten(min))
+			health.value:Show()
 		else
 			health.value:SetText(min)
+			if (not UnitAffectingCombat('player')) then
+				health.value:Hide()
+			end
 		end
 	end
 
@@ -458,13 +462,13 @@ local settings = ns.settings							-- get the settings
 	core.UpdateHealth_min_percent = function(health, unit, min, max)
 		if (UnitIsDead(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.dead)
+			health.value:SetText(PhantomMenaceOptions.strings.dead)
 		elseif (UnitIsGhost(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.ghost)
+			health.value:SetText(PhantomMenaceOptions.strings.ghost)
 		elseif (not UnitIsConnected(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.offline)
+			health.value:SetText(PhantomMenaceOptions.strings.offline)
 		else
 			if (min ~= max) then
 				health.value:SetFormattedText('|cffCCCCCC%s | %d%%|r', lib.Shorten(min), (min/max)*100)
@@ -479,17 +483,27 @@ local settings = ns.settings							-- get the settings
 	--[[ Shows the health-value as percent only.
 	]]
 	core.UpdateHealth_percent = function(health, unit, min, max)
+		health.value:Show()
 		if (UnitIsDead(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.dead)
+			health.value:SetText(PhantomMenaceOptions.strings.dead)
+			-- health.value:Show()
 		elseif (UnitIsGhost(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.ghost)
+			health.value:SetText(PhantomMenaceOptions.strings.ghost)
+			-- health.value:Show()
 		elseif (not UnitIsConnected(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.offline)
+			health.value:SetText(PhantomMenaceOptions.strings.offline)
+			-- health.value:Show()
+		elseif ( min ~= max ) then
+			health.value:SetFormattedText('|cffCCCCCC%d%%|r', (min/max)*100)
+			-- health.value:Show()
 		else
 			health.value:SetFormattedText('|cffCCCCCC%d%%|r', (min/max)*100)
+			if (not UnitAffectingCombat(unit)) then
+				health.value:Hide()
+			end
 		end
 		health:GetParent():UNIT_NAME_UPDATE(event, unit)
 	end
@@ -498,20 +512,26 @@ local settings = ns.settings							-- get the settings
 	--[[ Shows the health-value as deficit from MAX.
 	]]
 	core.UpdateHealth_deficit = function(health, unit, min, max)
+		health.value:Show()
 		if (UnitIsDead(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.dead)
+			health.value:SetText(PhantomMenaceOptions.strings.dead)
+			-- health.value:Show()
 		elseif (UnitIsGhost(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.ghost)
+			health.value:SetText(PhantomMenaceOptions.strings.ghost)
+			-- health.value:Show()
 		elseif (not UnitIsConnected(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.offline)
+			health.value:SetText(PhantomMenaceOptions.strings.offline)
+			-- health.value:Show()
+		elseif ( min ~= max ) then
+			health.value:SetFormattedText('|cffCC0000-%s|r', lib.Shorten(max-min))
+			-- health.value:Show()
 		else
-			if ( min ~= max ) then
-				health.value:SetFormattedText('|cffCC0000-%s|r', lib.Shorten(max-min))
-			else
-				health.value:SetText(min)
+			health.value:SetText(min)
+			if (not UnitAffectingCombat(unit)) then
+				health.value:Hide()
 			end
 		end
 		health:GetParent():UNIT_NAME_UPDATE(event, unit)
@@ -524,17 +544,17 @@ local settings = ns.settings							-- get the settings
 	core.UpdateHealth_raid = function(health, unit, min, max)
 		if (UnitIsDead(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.dead)
+			health.value:SetText(PhantomMenaceOptions.strings.dead)
 			health.value:Show()
 			health:GetParent().Name:Hide()
 		elseif (UnitIsGhost(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.ghost)
+			health.value:SetText(PhantomMenaceOptions.strings.ghost)
 			health.value:Show()
 			health:GetParent().Name:Hide()
 		elseif (not UnitIsConnected(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.offline)
+			health.value:SetText(PhantomMenaceOptions.strings.offline)
 			health.value:Show()
 			health:GetParent().Name:Hide()
 		else
@@ -557,17 +577,17 @@ local settings = ns.settings							-- get the settings
 	core.UpdateHealth_raid_deficit = function(health, unit, min, max)
 		if (UnitIsDead(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.dead)
+			health.value:SetText(PhantomMenaceOptions.strings.dead)
 			health.value:Show()
 			health:GetParent().Name:Hide()
 		elseif (UnitIsGhost(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.ghost)
+			health.value:SetText(PhantomMenaceOptions.strings.ghost)
 			health.value:Show()
 			health:GetParent().Name:Hide()
 		elseif (not UnitIsConnected(unit)) then
 			health:SetValue(0)
-			health.value:SetText(settings.options.strings.offline)
+			health.value:SetText(PhantomMenaceOptions.strings.offline)
 			health.value:Show()
 			health:GetParent().Name:Hide()
 		else
@@ -605,12 +625,72 @@ local settings = ns.settings							-- get the settings
 	end
 
 
+	--[[
+	
+	]]
+	core.CombatShowHealthPlayer = function(frame, event)
+		if ( event == 'PLAYER_REGEN_DISABLED' ) then
+			frame.value:Show()
+			frame:GetParent():SetScript('OnEnter', nil)
+			frame:GetParent():SetScript('OnLeave', nil)
+		else
+			frame.value:Hide()
+			frame:GetParent():SetScript('OnEnter', function()
+				frame:GetParent().Health.value:Show()
+				frame:GetParent().Power.value:Show()
+			end)
+			frame:GetParent():SetScript('OnLeave', function()
+				frame:GetParent().Health.value:Hide()
+				frame:GetParent().Power.value:Hide()
+			end)
+		end
+	end
+
+
+	--[[
+	
+	]]
+	core.CombatShowPowerPlayer = function(frame, event)
+		if ( event == 'PLAYER_REGEN_DISABLED' ) then
+			frame.value:Show()
+		else
+			frame.value:Hide()
+		end
+	end
+
+
+	--[[
+	
+	]]
+	core.CombatShowPowerTarget = function(frame, event)
+		if ( event == 'PLAYER_REGEN_DISABLED' ) then
+			frame.value:Show()
+			frame:GetParent():SetScript('OnEnter', function()
+			UnitFrame_OnEnter(frame:GetParent())
+		end)
+			frame:GetParent():SetScript('OnLeave', function()
+			UnitFrame_OnLeave()
+		end)
+		else
+			frame.value:Hide()
+			frame:GetParent():SetScript('OnEnter', function()
+				frame.value:Show()
+				UnitFrame_OnEnter(frame:GetParent())
+			end)
+			frame:GetParent():SetScript('OnLeave', function()
+				frame.value:Hide()
+				UnitFrame_OnLeave()
+			end)
+		end
+	end
+
+
 	--[[ Updates the target's name
 		Limited to 23 characters.
 	]]
 	core.UpdateName_target = function(self, event, unit)
 		local name = UnitName(unit)
-		if string.len(name) > 23 then name = name:sub(1, 22)..'...' end
+		if string.len(name) > 21 then name = name:sub(1, 20)..'...' end
 		self.Name:SetText(name)
 	end
 

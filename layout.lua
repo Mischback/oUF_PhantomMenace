@@ -32,15 +32,6 @@ local core = ns.core									-- get the core
 		self:RegisterForClicks('anyup')
 		self:SetAttribute('*type2', 'menu')
 
-		-- ***** ONMOUSEOVER ***************************************************************************
-		-- self:SetScript('OnEnter', UnitFrame_OnEnter)
-		-- self:SetScript('OnLeave', UnitFrame_OnLeave)
-		self:SetScript('OnEnter', function()
-			self.Power.value:Show()
-		end)
-		self:SetScript('OnLeave', function()
-			self.Power.value:Hide()
-		end)
 
 		-- ***** HEALTH ********************************************************************************
 		self.Health = core.CreateHealthBar(self)
@@ -48,6 +39,10 @@ local core = ns.core									-- get the core
 		-- ***** POWER *********************************************************************************
 		self.Power = core.CreatePowerBar(self, 162, 25)
 		self.Power:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', -9, 16)
+
+		-- ***** ONMOUSEOVER ***************************************************************************
+		-- self:SetScript('OnEnter', UnitFrame_OnEnter)
+		-- self:SetScript('OnLeave', UnitFrame_OnLeave)
 
 		-- ***** BORDER ********************************************************************************
 		if ( lib.playerclass == 'DEATHKNIGHT' ) then
@@ -100,7 +95,7 @@ local core = ns.core									-- get the core
 			else
 				self.Border = core.CreateBorder_Generic(self, settings.src.textures.border_player_standard, -32, 14)
 			end
-		elseif ( lib.playerclass == 'SHAMAN' and  IsAddOnLoaded('oUF_boring_totembar') ) then
+		elseif ( lib.playerclass == 'SHAMAN' and IsAddOnLoaded('oUF_boring_totembar') ) then
 			self.Border = core.CreateBorder_Generic(self, settings.src.textures.border_player_4, -32, 14)
 			self.TotemBar = core.CreateTotems(self)
 			self.TotemBar.UpdateColors = true
@@ -137,12 +132,12 @@ local core = ns.core									-- get the core
 		-- ***** THREAT/DEBUFF HIGHLIGHTING ************************************************************
 		self.Overlay = core.CreateOverlay(self)
 
-		if ( settings.options.aggroHighlight ) then
+		if ( PhantomMenaceOptions.aggroHighlight ) then
 			self.Threat = CreateFrame('Frame', nil, self)
 			self.Threat.Override = core.UpdateOverlay
 		end
 
-		if ( settings.options.debuffHighlight ) then
+		if ( PhantomMenaceOptions.debuffHighlight ) then
 			self.DebuffHighlight = core.CreateDebuffHighlight(self)
 		end
 
@@ -155,11 +150,29 @@ local core = ns.core									-- get the core
 		self.Health.value = lib.CreateFontObject(self.Text, 16, settings.src.fonts.value)
 		self.Health.value:SetTextColor(unpack(settings.src.default_font))
 		self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -2, 3)
+		self.Health.value:Hide()
 
 		self.Power.value = lib.CreateFontObject(self.Text, 16, settings.src.fonts.value)
 		self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 2, 3)
 		self.Power.value:SetTextColor(unpack(settings.src.default_font))
 		self.Power.value:Hide()
+
+		self.Health:RegisterEvent('PLAYER_REGEN_ENABLED')
+		self.Health:RegisterEvent('PLAYER_REGEN_DISABLED')
+		self.Health:SetScript('OnEvent', core.CombatShowHealthPlayer)
+		if ( PhantomMenaceOptions.showPlayerPower ) then
+			self.Power:RegisterEvent('PLAYER_REGEN_ENABLED')
+			self.Power:RegisterEvent('PLAYER_REGEN_DISABLED')
+			self.Power:SetScript('OnEvent', core.CombatShowPowerPlayer)
+		end
+		self:SetScript('OnEnter', function()
+			self.Health.value:Show()
+			self.Power.value:Show()
+		end)
+		self:SetScript('OnLeave', function()
+			self.Health.value:Hide()
+			self.Power.value:Hide()
+		end)
 
 		-- ***** ENGINES *******************************************************************************
 		self.Health.PostUpdate = core.UpdateHealth_player
@@ -179,16 +192,6 @@ local core = ns.core									-- get the core
 		self.menu = lib.Menu
 		self:RegisterForClicks('anyup')
 		self:SetAttribute('*type2', 'menu')
-
-		-- ***** ONMOUSEOVER ***************************************************************************
-		self:SetScript('OnEnter', function()
-			self.Power.value:Show()
-			UnitFrame_OnEnter(self)
-		end)
-		self:SetScript('OnLeave', function()
-			self.Power.value:Hide()
-			UnitFrame_OnLeave()
-		end)
 
 		-- ***** HEALTH ********************************************************************************
 		self.Health = core.CreateHealthBar(self)
@@ -243,12 +246,12 @@ local core = ns.core									-- get the core
  		-- ***** THREAT/DEBUFF HIGHLIGHTING ************************************************************
 		self.Overlay = core.CreateOverlay(self)
 
-		if ( settings.options.aggroHighlight ) then
+		if ( PhantomMenaceOptions.aggroHighlight ) then
 			self.Threat = CreateFrame('Frame', nil, self)
 			self.Threat.Override = core.UpdateOverlay
 		end
 
-		if ( settings.options.debuffHighlight ) then
+		if ( PhantomMenaceOptions.debuffHighlight ) then
 			self.DebuffHighlight = core.CreateDebuffHighlight(self)
 		end
 
@@ -273,6 +276,22 @@ local core = ns.core									-- get the core
 		self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 2, 3)
 		self.Power.value:SetTextColor(unpack(settings.src.default_font))
 		self.Power.value:Hide()
+
+		if ( PhantomMenaceOptions.showTargetPower ) then
+			self.Power:RegisterEvent('PLAYER_REGEN_ENABLED')
+			self.Power:RegisterEvent('PLAYER_REGEN_DISABLED')
+			self.Power:SetScript('OnEvent', core.CombatShowPowerTarget)
+		end
+
+		-- ***** ONMOUSEOVER ***************************************************************************
+		self:SetScript('OnEnter', function()
+			self.Power.value:Show()
+			UnitFrame_OnEnter(self)
+		end)
+		self:SetScript('OnLeave', function()
+			self.Power.value:Hide()
+			UnitFrame_OnLeave()
+		end)
 
 		-- ***** ENGINES *******************************************************************************
 		self.Health.PostUpdate = core.UpdateHealth_min_percent
@@ -397,7 +416,7 @@ local core = ns.core									-- get the core
 		self.Debuffs.size = 28
 		self.Debuffs.spacing = 4
 		self.Debuffs.num = 5
-		self.Debuffs:SetPoint('BOTTOMLEFT', self, 'TOPLEFT', -3, -20)
+		self.Debuffs:SetPoint('BOTTOMLEFT', self, 'TOPLEFT', -3, 20)
 		self.Debuffs.CreateIcon = lib.CreateAuraIcon
 		self.Debuffs.CustomFilter = core.FilterDebuffs
 		self.Debuffs.PostUpdateIcon = core.GenericPostUpdateIcon
@@ -410,12 +429,12 @@ local core = ns.core									-- get the core
 		-- ***** THREAT/DEBUFF HIGHLIGHTING ************************************************************
 		self.Overlay = core.CreateOverlay(self)
 
-		if ( settings.options.aggroHighlight ) then
+		if ( PhantomMenaceOptions.aggroHighlight ) then
 			self.Threat = CreateFrame('Frame', nil, self)
 			self.Threat.Override = core.UpdateOverlay
 		end
 
-		if ( settings.options.debuffHighlight ) then
+		if ( PhantomMenaceOptions.debuffHighlight ) then
 			self.DebuffHighlight = core.CreateDebuffHighlight(self)
 		end
 
@@ -434,7 +453,7 @@ local core = ns.core									-- get the core
 		self.Power.value:Hide()
 
 		-- ***** ENGINES *******************************************************************************
-		if ( settings.options.healerMode ) then
+		if ( PhantomMenaceOptions.healerMode ) then
 			self.Health.PostUpdate = core.UpdateHealth_deficit
 		else
 			self.Health.PostUpdate = core.UpdateHealth_percent
@@ -444,7 +463,7 @@ local core = ns.core									-- get the core
 	end
 
 
-	--[[
+	--[[ This is the style "big" for party-frames
 	
 	]]
 	local function party(self)
@@ -456,16 +475,6 @@ local core = ns.core									-- get the core
 		self.menu = lib.Menu
 		self:RegisterForClicks('anyup')
 		self:SetAttribute('*type2', 'menu')
-
-		-- ***** ONMOUSEOVER ***************************************************************************
-		self:SetScript('OnEnter', function()
-			self.Power.value:Show()
-			UnitFrame_OnEnter(self)
-		end)
-		self:SetScript('OnLeave', function()
-			self.Power.value:Hide()
-			UnitFrame_OnLeave()
-		end)
 
 		-- ***** HEALTH ********************************************************************************
 		self.Health = core.CreateHealthBar(self)
@@ -499,12 +508,12 @@ local core = ns.core									-- get the core
 		-- ***** THREAT/DEBUFF HIGHLIGHTING ************************************************************
 		self.Overlay = core.CreateOverlay(self)
 
-		if ( settings.options.aggroHighlight ) then
+		if ( PhantomMenaceOptions.aggroHighlight ) then
 			self.Threat = CreateFrame('Frame', nil, self)
 			self.Threat.Override = core.UpdateOverlay
 		end
 
-		if ( settings.options.debuffHighlight ) then
+		if ( PhantomMenaceOptions.debuffHighlight ) then
 			self.DebuffHighlight = core.CreateDebuffHighlight(self)
 		end
 
@@ -521,14 +530,27 @@ local core = ns.core									-- get the core
 		self.Health.value = lib.CreateFontObject(self.Border, 16, settings.src.fonts.value)
 		self.Health.value:SetTextColor(unpack(settings.src.default_font))
 		self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -2, 3)
+		self.Health.value:Hide()
 
 		self.Power.value = lib.CreateFontObject(self.Border, 16, settings.src.fonts.value)
 		self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 2, 3)
 		self.Power.value:SetTextColor(unpack(settings.src.default_font))
 		self.Power.value:Hide()
 
+		-- ***** ONMOUSEOVER ***************************************************************************
+		self:SetScript('OnEnter', function()
+			self.Health.value:Show()
+			self.Power.value:Show()
+			UnitFrame_OnEnter(self)
+		end)
+		self:SetScript('OnLeave', function()
+			self.Health.value:Hide()
+			self.Power.value:Hide()
+			UnitFrame_OnLeave()
+		end)
+
 		-- ***** ENGINES *******************************************************************************
-		if ( settings.options.healerMode ) then
+		if ( PhantomMenaceOptions.healerMode ) then
 			self.Health.PostUpdate = core.UpdateHealth_deficit
 		else
 			self.Health.PostUpdate = core.UpdateHealth_percent
@@ -538,7 +560,7 @@ local core = ns.core									-- get the core
 	end
 
 
-	--[[
+	--[[ This is the style for Raid-frames aswell as the style "raid" for party-frames
 	
 	]]
 	local function raid(self)
@@ -579,12 +601,12 @@ local core = ns.core									-- get the core
 		-- ***** THREAT/DEBUFF HIGHLIGHTING ************************************************************
 		self.Overlay = core.CreateOverlay(self)
 
-		if ( settings.options.aggroHighlight ) then
+		if ( PhantomMenaceOptions.aggroHighlight ) then
 			self.Threat = CreateFrame('Frame', nil, self)
 			self.Threat.Override = core.UpdateOverlay
 		end
 
-		if ( settings.options.debuffHighlight ) then
+		if ( PhantomMenaceOptions.debuffHighlight ) then
 			self.DebuffHighlight = core.CreateDebuffHighlight(self)
 		end
 
@@ -598,8 +620,13 @@ local core = ns.core									-- get the core
 		self.Health.value:SetTextColor(unpack(settings.src.default_font))
 		self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -2, 3)
 
+		-- ***** READY CHECK ***************************************************************************
+		self.ReadyCheck = self.Border:CreateTexture(nil, 'OVERLAY')
+		self.ReadyCheck:SetSize(16, 16)
+		self.ReadyCheck:SetPoint('CENTER', self, 'RIGHT', -2, 0)
+
 		-- ***** ENGINES *******************************************************************************
-		if ( settings.options.healerMode ) then
+		if ( PhantomMenaceOptions.healerMode ) then
 			self.Health.PostUpdate = core.UpdateHealth_raid_deficit
 		else
 			self.Health.PostUpdate = core.UpdateHealth_raid
@@ -678,12 +705,12 @@ local core = ns.core									-- get the core
 		-- ***** THREAT/DEBUFF HIGHLIGHTING ************************************************************
 		self.Overlay = core.CreateOverlay(self)
 
-		if ( settings.options.aggroHighlight ) then
+		if ( PhantomMenaceOptions.aggroHighlight ) then
 			self.Threat = CreateFrame('Frame', nil, self)
 			self.Threat.Override = core.UpdateOverlay
 		end
 
-		if ( settings.options.debuffHighlight ) then
+		if ( PhantomMenaceOptions.debuffHighlight ) then
 			self.DebuffHighlight = core.CreateDebuffHighlight(self)
 		end
 
@@ -693,7 +720,7 @@ local core = ns.core									-- get the core
 		self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -2, 3)
 
 		-- ***** ENGINES *******************************************************************************
-		if ( settings.options.healerMode ) then
+		if ( PhantomMenaceOptions.healerMode ) then
 			self.Health.PostUpdate = core.UpdateHealth_deficit
 		else
 			self.Health.PostUpdate = core.UpdateHealth_percent
@@ -716,19 +743,20 @@ oUF_PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	--[[ Positions
 		Check, if our positions in the SavedVars are present and set them to default, if not!
 	]]
-	-- if not PhantomMenacePositions then
-		-- PhantomMenacePositions = {}
-	-- end
-	-- for k, v in pairs(settings.positions) do
-		-- if type(v) ~= type(PhantomMenacePositions[k]) then
-			-- PhantomMenacePositions[k] = v
-		-- end
-	-- end
+	if not PhantomMenacePositions then
+		PhantomMenacePositions = {}
+	end
+	for k, v in pairs(settings.positions) do
+		if type(v) ~= type(PhantomMenacePositions[k]) then
+			PhantomMenacePositions[k] = v
+		end
+	end
 	
 	--[[ Options
 		Check, if our options in the SavedVars are present and set them to default, if not!
 	]]
 	if not PhantomMenaceOptions then
+		lib.debugging('???')
 		PhantomMenaceOptions = {}
 	end
 	for k, v in pairs(settings.options) do
@@ -753,106 +781,135 @@ oUF_PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	oUF:RegisterStyle('oUF_PhantomMenace_maintank', maintank)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_player')
-	oUF:Spawn('player', 'oUF_PhantomMenace_player'):SetPoint(settings.positions.player.anchorPoint, settings.positions.player.anchorToFrame, settings.positions.player.anchorToPoint, settings.positions.player.x, settings.positions.player.y)
+	oUF:Spawn('player', settings.src.unitNames.player):SetPoint(PhantomMenacePositions.player.anchorPoint, PhantomMenacePositions.player.anchorToFrame, PhantomMenacePositions.player.anchorToPoint, PhantomMenacePositions.player.x, PhantomMenacePositions.player.y)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_target')
-	oUF:Spawn('target', 'oUF_PhantomMenace_target'):SetPoint(settings.positions.target.anchorPoint, settings.positions.target.anchorToFrame, settings.positions.target.anchorToPoint, settings.positions.target.x, settings.positions.target.y)
+	oUF:Spawn('target', settings.src.unitNames.target):SetPoint(PhantomMenacePositions.target.anchorPoint, PhantomMenacePositions.target.anchorToFrame, PhantomMenacePositions.target.anchorToPoint, PhantomMenacePositions.target.x, PhantomMenacePositions.target.y)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_focus')
-	oUF:Spawn('focus', 'oUF_PhantomMenace_focus'):SetPoint(settings.positions.focus.anchorPoint, settings.positions.focus.anchorToFrame, settings.positions.focus.anchorToPoint, settings.positions.focus.x, settings.positions.focus.y)
+	oUF:Spawn('focus', settings.src.unitNames.focus):SetPoint(PhantomMenacePositions.focus.anchorPoint, PhantomMenacePositions.focus.anchorToFrame, PhantomMenacePositions.focus.anchorToPoint, PhantomMenacePositions.focus.x, PhantomMenacePositions.focus.y)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_targettarget')
-	oUF:Spawn('targettarget', 'oUF_PhantomMenace_targettarget'):SetPoint(settings.positions.targettarget.anchorPoint, settings.positions.targettarget.anchorToFrame, settings.positions.targettarget.anchorToPoint, settings.positions.targettarget.x, settings.positions.targettarget.y)
-	oUF:Spawn('focustarget', 'oUF_PhantomMenace_focustarget'):SetPoint(settings.positions.focustarget.anchorPoint, settings.positions.focustarget.anchorToFrame, settings.positions.focustarget.anchorToPoint, settings.positions.focustarget.x, settings.positions.focustarget.y)
+	oUF:Spawn('targettarget', settings.src.unitNames.targettarget):SetPoint(PhantomMenacePositions.targettarget.anchorPoint, PhantomMenacePositions.targettarget.anchorToFrame, PhantomMenacePositions.targettarget.anchorToPoint, PhantomMenacePositions.targettarget.x, PhantomMenacePositions.targettarget.y)
+	oUF:Spawn('focustarget', settings.src.unitNames.focustarget):SetPoint(PhantomMenacePositions.focustarget.anchorPoint, PhantomMenacePositions.focustarget.anchorToFrame, PhantomMenacePositions.focustarget.anchorToPoint, PhantomMenacePositions.focustarget.x, PhantomMenacePositions.focustarget.y)
+	oUF:Spawn('pet', settings.src.unitNames.pet):SetPoint(PhantomMenacePositions.pet.anchorPoint, PhantomMenacePositions.pet.anchorToFrame, PhantomMenacePositions.pet.anchorToPoint, PhantomMenacePositions.pet.x, PhantomMenacePositions.pet.y)
 
-	-- oUF:SetActiveStyle('oUF_PhantomMenace_maintank')
-	-- oUF:Spawn('focus', 'oUF_PhantomMenace_maintank'):SetPoint(settings.positions.maintank.anchorPoint, settings.positions.maintank.anchorToFrame, settings.positions.maintank.anchorToPoint, settings.positions.maintank.x, settings.positions.maintank.y)
-
-	oUF:SetActiveStyle('oUF_PhantomMenace_party')
 	local partyF
-	if ( settings.options.partyLayout == '2x2' ) then
-		partyF = oUF:SpawnHeader('oUF_PhantomMenace_party', nil, 'party',
-									'showPlayer', false,
-									'showParty', true, 
-									'showSolo', true,
-									'showRaid', true,
-									'yOffset', -40,
-									'xOffset', -40,
-									'maxColumns', 2,
-									'unitsPerColumn', 2,
-									'columnAnchorPoint', 'LEFT',
-									'columnSpacing', 20,
-									'oUF-initialConfigFunction', [[
-										self:SetWidth(160)
-										self:SetHeight(32)
-									]]
-		)
-	elseif ( settings.options.partyLayout == '1x4' ) then
-		partyF = oUF:SpawnHeader('oUF_PhantomMenace_party', nil, 'party',
-									'showPlayer', false,
-									'showParty', true, 
-									'showSolo', true,
-									'yOffset', -35, 
-									'xOffset', 0, 
-									'oUF-initialConfigFunction', [[
-										self:SetWidth(160)
-										self:SetHeight(32)
-									]]
-		)
-	else
-		partyF = oUF:SpawnHeader('oUF_PhantomMenace_party', nil, 'party',
-									'showPlayer', true,
-									'showParty', true, 
-									'showSolo', true,
-									'yOffset', -35, 
-									'xOffset', 0, 
-									'oUF-initialConfigFunction', [[
-										self:SetWidth(160)
-										self:SetHeight(32)
-									]]
-		)
+	if ( PhantomMenaceOptions.partyStyle == settings.src.partyStyles.big ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_party')
+		if ( PhantomMenaceOptions.partyLayout == settings.src.partyLayouts['2x2'] ) then
+			partyF = oUF:SpawnHeader(settings.src.unitNames.party, nil, 'party',
+										'showPlayer', false,
+										'showParty', true, 
+										'showSolo', false,
+										'showRaid', false,
+										'yOffset', -40,
+										'xOffset', -40,
+										'maxColumns', 2,
+										'unitsPerColumn', 2,
+										'columnAnchorPoint', 'LEFT',
+										'columnSpacing', 20,
+										'oUF-initialConfigFunction', [[
+											self:SetWidth(160)
+											self:SetHeight(32)
+										]]
+			)
+		elseif ( PhantomMenaceOptions.partyLayout == settings.src.partyLayouts['1x4'] ) then
+			partyF = oUF:SpawnHeader(settings.src.unitNames.party, nil, 'party',
+										'showPlayer', false,
+										'showParty', true, 
+										'showSolo', false,
+										'showRaid', false,
+										'yOffset', -35, 
+										'xOffset', 0, 
+										'oUF-initialConfigFunction', [[
+											self:SetWidth(160)
+											self:SetHeight(32)
+										]]
+			)
+		else
+			partyF = oUF:SpawnHeader(settings.src.unitNames.party, nil, 'party',
+										'showPlayer', false,
+										'showParty', true, 
+										'showSolo', false,
+										'showRaid', false,
+										'yOffset', -35, 
+										'xOffset', 0, 
+										'oUF-initialConfigFunction', [[
+											self:SetWidth(160)
+											self:SetHeight(32)
+										]]
+			)
+		end
 	end
 
 	if ( PhantomMenaceOptions.healerMode ) then
-		partyF:SetPoint(settings.positions.party_healer.anchorPoint, settings.positions.party_healer.anchorToFrame, settings.positions.party_healer.anchorToPoint, settings.positions.party_healer.x, settings.positions.party_healer.y)
+		partyF:SetPoint(PhantomMenacePositions.party_healer.anchorPoint, PhantomMenacePositions.party_healer.anchorToFrame, PhantomMenacePositions.party_healer.anchorToPoint, PhantomMenacePositions.party_healer.x, settings.positions.party_healer.y)
 	else
-		partyF:SetPoint(settings.positions.party.anchorPoint, settings.positions.party.anchorToFrame, settings.positions.party.anchorToPoint, settings.positions.party.x, settings.positions.party.y)
+		partyF:SetPoint(PhantomMenacePositions.party.anchorPoint, PhantomMenacePositions.party.anchorToFrame, PhantomMenacePositions.party.anchorToPoint, PhantomMenacePositions.party.x, PhantomMenacePositions.party.y)
 	end
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_raid')
 	-- oUF:Spawn('focus', 'oUF_PhantomMenace_raid'):SetPoint(settings.positions.maintank.anchorPoint, settings.positions.maintank.anchorToFrame, settings.positions.maintank.anchorToPoint, settings.positions.maintank.x, settings.positions.maintank.y-75)
 	local raidF
-	if ( settings.options.raidLayout == 'columns' ) then
-		raidF = oUF:SpawnHeader('oUF_PhantomMenace_raid', nil, 'raid',
+	if ( PhantomMenaceOptions.raidLayout == settings.src.raidLayouts['2'] ) then
+		raidF = oUF:SpawnHeader(settings.src.unitNames.raid, nil, 'raid',
+									'showPlayer', true,
+									'showParty', false, 
+									'showSolo', false,
 									'showRaid', true,
-									'yOffset', -9, 
-									'xOffset', 0,
-									'maxColumns', 8, 
-									'unitsPerColumn', 5, 
-									'columnAnchorPoint', 'LEFT',
-									'columnSpacing', 10, 
 									'groupFilter', '1,2,3,4,5,6,7,8',
+									'point', 'LEFT',
+									'xOffset', 10,
+									'yOffset', -9, 
 									'groupBy', 'GROUP',
 									'groupingOrder', '1,2,3,4,5,6,7,8',
+									'maxColumns', 5, 
+									'unitsPerColumn', 5, 
+									'columnSpacing', 10, 
+									'columnAnchorPoint', 'BOTTOM',
 									'oUF-initialConfigFunction', [[
 										self:SetWidth(70)
 										self:SetHeight(28)
 									]]
 		)
-	elseif ( settings.options.raidLayout == 'row' ) then
-		raidF = oUF:SpawnHeader('oUF_PhantomMenace_raid', nil, 'raid',
-									'showPlayer', true,
-									'showSolo', true,
+	elseif ( PhantomMenaceOptions.raidLayout == settings.src.raidLayouts['3'] ) then
+		raidF = oUF:SpawnHeader(settings.src.unitNames.raid, nil, 'raid',
+									'showPlayer', false,
+									'showParty', false, 
+									'showSolo', false,
 									'showRaid', true,
-									'yOffset', -9, 
-									'xOffset', 0,
-									'maxColumns', 5, 
-									'unitsPerColumn', 8, 
-									'columnAnchorPoint', 'BOTTOM',
-									'columnSpacing', 10, 
 									'groupFilter', '1,2,3,4,5,6,7,8',
+									'point', 'LEFT',
+									'xOffset', 10,
+									'yOffset', -9, 
 									'groupBy', 'GROUP',
 									'groupingOrder', '1,2,3,4,5,6,7,8',
+									'maxColumns', 3, 
+									'unitsPerColumn', 3, 
+									'columnSpacing', 10, 
+									'columnAnchorPoint', 'BOTTOM',
+									'oUF-initialConfigFunction', [[
+										self:SetWidth(70)
+										self:SetHeight(28)
+									]]
+		)
+	elseif ( PhantomMenaceOptions.raidLayout == settings.src.raidLayouts['5'] ) then
+		raidF = oUF:SpawnHeader(settings.src.unitNames.raid, nil, 'raid',
+									'showPlayer', true,
+									'showParty', false, 
+									'showSolo', false,
+									'showRaid', true,
+									'groupFilter', '1,2,3,4,5,6,7,8',
+									'point', 'TOP',
+									'xOffset', 0,
+									'yOffset', -9, 
+									'groupBy', 'GROUP',
+									'groupingOrder', '1,2,3,4,5,6,7,8',
+									'maxColumns', 8, 
+									'unitsPerColumn', 5, 
+									'columnSpacing', 10, 
+									'columnAnchorPoint', 'LEFT',
 									'oUF-initialConfigFunction', [[
 										self:SetWidth(70)
 										self:SetHeight(28)
@@ -861,27 +918,27 @@ oUF_PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	end
 
 	if ( PhantomMenaceOptions.healerMode ) then
-		raidF:SetPoint(settings.positions.raid_healer.anchorPoint, settings.positions.raid_healer.anchorToFrame, settings.positions.raid_healer.anchorToPoint, settings.positions.raid_healer.x, settings.positions.raid_healer.y)
+		raidF:SetPoint(PhantomMenacePositions.raid_healer.anchorPoint, PhantomMenacePositions.raid_healer.anchorToFrame, PhantomMenacePositions.raid_healer.anchorToPoint, PhantomMenacePositions.raid_healer.x, PhantomMenacePositions.raid_healer.y)
 	else
-		raidF:SetPoint(settings.positions.raid.anchorPoint, settings.positions.raid.anchorToFrame, settings.positions.raid.anchorToPoint, settings.positions.raid.x, settings.positions.raid.y)
+		raidF:SetPoint(PhantomMenacePositions.raid.anchorPoint, PhantomMenacePositions.raid.anchorToFrame, PhantomMenacePositions.raid.anchorToPoint, PhantomMenacePositions.raid.x, PhantomMenacePositions.raid.y)
 	end
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_maintank')
-	local maintankF = oUF:SpawnHeader('oUF_PredatorSimple_MT', nil, 'raid', 
+	local maintankF = oUF:SpawnHeader(settings.src.unitNames.maintank, nil, 'raid', 
 									'showRaid', true, 
 									'yOffset', -25, 
 									'groupFilter', 'MAINTANK')
 	if ( PhantomMenaceOptions.healerMode ) then
-		maintankF:SetPoint(settings.positions.maintank_healer.anchorPoint, settings.positions.maintank_healer.anchorToFrame, settings.positions.maintank_healer.anchorToPoint, settings.positions.maintank_healer.x, settings.positions.maintank_healer.y)
+		maintankF:SetPoint(PhantomMenacePositions.maintank_healer.anchorPoint, PhantomMenacePositions.maintank_healer.anchorToFrame, PhantomMenacePositions.maintank_healer.anchorToPoint, PhantomMenacePositions.maintank_healer.x, PhantomMenacePositions.maintank_healer.y)
 	else
-		maintankF:SetPoint(settings.positions.maintank.anchorPoint, settings.positions.maintank.anchorToFrame, settings.positions.maintank.anchorToPoint, settings.positions.maintank.x, settings.positions.maintank.y)
+		maintankF:SetPoint(PhantomMenacePositions.maintank.anchorPoint, PhantomMenacePositions.maintank.anchorToFrame, PhantomMenacePositions.maintank.anchorToPoint, PhantomMenacePositions.maintank.x, PhantomMenacePositions.maintank.y)
 	end
 
 	local bossF = {}
 	for k = 1, MAX_BOSS_FRAMES do
 		bossF[k] = oUF:Spawn('boss'..k, 'oUF_PhantomMenace_boss'..k)
 		if ( k == 1 ) then
-			bossF[k]:SetPoint(settings.positions.boss.anchorPoint, settings.positions.boss.anchorToFrame, settings.positions.boss.anchorToPoint, settings.positions.boss.x, settings.positions.boss.y)
+			bossF[k]:SetPoint(PhantomMenacePositions.boss.anchorPoint, PhantomMenacePositions.boss.anchorToFrame, PhantomMenacePositions.boss.anchorToPoint, PhantomMenacePositions.boss.x, PhantomMenacePositions.boss.y)
 		else
 			bossF[k]:SetPoint('TOPLEFT', bossF[k-1], 'BOTTOMLEFT', 0, -10)
 		end
