@@ -10,7 +10,7 @@ local lib = ns.lib
 
 -- Let's get it on!
 local core = {}
--- *********************************************************************************
+-- ************************************************************************************************
 
 --[[
 
@@ -207,9 +207,9 @@ core.CreateUnitFrameCastbar = function(self, width, height, nameOff)
 end
 
 
--- *********************************************************************************
--- ***** POWER *********************************************************************
--- *********************************************************************************
+-- ************************************************************************************************
+-- ***** POWER ************************************************************************************
+-- ************************************************************************************************
 
 --[[
 
@@ -262,10 +262,46 @@ core.CreatePowerbarOffsettedFG = function(self, leftX, leftY, rightX, rightY)
 	return pb
 end
 
+--[[ Custom SoulShard-Update (SetAlpha instead of Show/Hide)
+	VOID SoulShardOverride(FRAME self, STRING event, STRING unit, STRING powerType)
+]]
+core.SoulShardOverride = function(self, event, unit, powerType)
+	if(self.unit ~= unit or (powerType and powerType ~= 'SOUL_SHARDS')) then return end
 
--- *********************************************************************************
--- *********************************************************************************
--- *********************************************************************************
+	local ss = self.SoulShards
+
+	local num = UnitPower('player', SPELL_POWER_SOUL_SHARDS)
+	for i = 1, SHARD_BAR_NUM_SHARDS do
+		if(i <= num) then
+			ss[i]:SetAlpha(1)
+		else
+			ss[i]:SetAlpha(0.35)
+		end
+	end
+end
+
+--[[ Custom HolyPower-Update (SetAlpha instead of Show/Hide)
+	VOID HolyPowerOverride(FRAME self, STRING event, STRING unit, STRING powerType)
+]]
+core.HolyPowerOverride = function(self, event, unit, powerType)
+	if(self.unit ~= unit or (powerType and powerType ~= 'HOLY_POWER')) then return end
+
+	local hp = self.HolyPower
+
+	local num = UnitPower('player', SPELL_POWER_HOLY_POWER)
+	for i = 1, MAX_HOLY_POWER do
+		if(i <= num) then
+			hp[i]:SetAlpha(1)
+		else
+			hp[i]:SetAlpha(0.35)
+		end
+	end
+end
+
+
+-- ************************************************************************************************
+-- ************************************************************************************************
+-- ************************************************************************************************
 
 --[[ Updates the name of an unit and sets the given raid icon, if present
 	VOID UpdateName(FRAME self, STRING event)
@@ -345,10 +381,36 @@ core.PetPowerUpdate = function(self, event, unit)
 	power:SetValue(min)
 end
 
+--[[ Move player's debuffs if there is an EclipseBar and makes adjustments of border-textures
+	VOID EclipseBarVisibility(FRAME self)
+]]
+core.EclipseBarVisibility = function(self)
+	local cfg = oUF_PhantomMenaceSettings['player']
+	if ( self:IsShown() ) then
+		self:GetParent().Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+floor(cfg.specialPowerHeight/2)+1)
+		_G['TexPMPlayerTop']:Hide()
+		_G['TexPMPlayerSpecial01']:Show()
+		_G['TexPMPlayerSpecial02']:Show()
+		_G['TexPMPlayerSpecial03']:Show()
+		_G['TexPMPlayerSpecial04']:Show()
+		_G['TexPMPlayerSpecial05']:Show()
+		_G['TexPMPlayerSpecial06']:Show()
+	else
+		self:GetParent().Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
+		_G['TexPMPlayerTop']:Show()
+		_G['TexPMPlayerSpecial01']:Hide()
+		_G['TexPMPlayerSpecial02']:Hide()
+		_G['TexPMPlayerSpecial03']:Hide()
+		_G['TexPMPlayerSpecial04']:Hide()
+		_G['TexPMPlayerSpecial05']:Hide()
+		_G['TexPMPlayerSpecial06']:Hide()
+	end
+end
 
--- *********************************************************************************
--- ***** HEALTH UPDATES ************************************************************
--- *********************************************************************************
+
+-- ************************************************************************************************
+-- ***** HEALTH UPDATES ***************************************************************************
+-- ************************************************************************************************
 
 --[[
 
@@ -409,5 +471,5 @@ core.UpdateHealth_pet = function(health, unit, min, max)
 end
 
 
--- *********************************************************************************
+-- ************************************************************************************************
 ns.core = core

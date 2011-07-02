@@ -42,7 +42,7 @@ settings.init = {
 		['color'] = {
 			['background'] = { 0, 0, 0, 1 },
 			['border'] = { 1, 1, 1, 0.2 },
-			-- ['border'] = { 1, 1, 1, 0.2 },
+			-- ['border'] = { 1, 0, 0, 1 },
 			['healthBarFG'] = { 0.05, 0.05, 0.05 },
 			['healthBarBG'] = { 0.25, 0.25, 0.25 },
 			['healthBarMyHeal'] = { 0.3, 0.6, 0.3 },
@@ -57,6 +57,12 @@ settings.init = {
 				[2] = {1, 0.6, 0, 0.7},
 				[3] = {1, 0, 0, 0.4},
 			},
+		},
+		['holyshardtotems'] = {
+			['width'] = 20, 
+			['spacing'] = 9,
+			['WARLOCK'] = { 1, 0, 1 },
+			['PALADIN'] = { 1, 1, 0 }
 		},
 		['glossIntensity'] = 0.7
 	},
