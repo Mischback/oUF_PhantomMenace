@@ -1,0 +1,12 @@
+## Interface: 40200
+## Author: Mischback
+## Title: oUF_|cffffd700PhantomMenace|r
+## RequiredDeps: oUF
+## OptionalDeps: oUF_BuffFilter
+## X-Category: UnitFrame
+
+maintanktarget.xml
+settings.lua
+lib.lua
+core.lua
+layout.lua

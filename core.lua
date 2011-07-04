@@ -19,7 +19,7 @@ core.CreateUnitFrame = function(self, width, height)
 
 	self:SetSize(width, height)
 
-	-- ***** HEALTH BAR ****************************************************************************
+	-- ***** HEALTH BAR ***************************************************************************
 	local hp = CreateFrame('StatusBar', nil, self)
 	hp:SetFrameLevel(20)
 	hp:SetAllPoints(self)
@@ -35,7 +35,7 @@ core.CreateUnitFrame = function(self, width, height)
 
 	self.Health = hp
 
-	-- ***** HEAL PREDICTION ***********************************************************************
+	-- ***** HEAL PREDICTION **********************************************************************
 	local mhpb = CreateFrame('StatusBar', nil, self)
 	mhpb:SetFrameLevel(21)
 	mhpb:SetPoint('TOPLEFT', hp:GetStatusBarTexture(), 'TOPRIGHT')
@@ -60,7 +60,22 @@ core.CreateUnitFrame = function(self, width, height)
 		['maxOverflow'] = 1.0,
 	}
 
-	-- ***** TEXT **********************************************************************************
+	-- ***** THREAT *******************************************************************************
+	self.Threat = CreateFrame('Frame', nil, self)
+	self.Threat.Override = core.ThreatUpdate
+
+	-- ***** OVERLAY ******************************************************************************
+	self.Overlay = CreateFrame('Frame', nil, self)
+	self.Overlay:SetFrameLevel(23)
+	self.Overlay.tex = self.Overlay:CreateTexture(nil, 'OVERLAY')
+	self.Overlay.tex:SetPoint('TOPLEFT', self)
+	self.Overlay.tex:SetPoint('BOTTOM', self)
+	self.Overlay.tex:SetTexture(settings.tex.overlay)
+	self.Overlay.tex:SetTexCoord(0, (width/256), 0, 1)
+	self.Overlay.tex:SetWidth(width)
+	self.Overlay.tex:SetVertexColor(1, 1, 1, 0)
+
+	-- ***** TEXT *********************************************************************************
 	self.Text = CreateFrame('Frame', nil, self)
 	self.Text:SetFrameLevel(self.Health:GetFrameLevel()+20)
 
@@ -68,14 +83,18 @@ core.CreateUnitFrame = function(self, width, height)
 	self.Health.value:SetJustifyH('RIGHT')
 	self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -1, 1)
 
-	-- ***** GLOSS *********************************************************************************
+	-- ***** GLOSS ********************************************************************************
 	self.Gloss = lib.CreateGloss(self, self.Health)
 
-	-- ***** BORDER ********************************************************************************
+	-- ***** BORDER *******************************************************************************
 	self.Border = CreateFrame('Frame', nil, self)
 	self.Border:SetFrameLevel(50)
 	self.Border.tex = {}
 
+	-- ***** ENGINES ******************************************************************************
+	self.menu = lib.menu
+	self:RegisterForClicks('anyup')
+	self:SetAttribute('*type2', 'menu')
 end
 
 --[[
@@ -87,7 +106,7 @@ core.CreateUnitFrameName = function(self, width, height, nameOff)
 
 	core.CreateUnitFrame(self, width, height)
 
-	-- ***** NAME **********************************************************************************
+	-- ***** NAME *********************************************************************************
 	self.NameBG = CreateFrame('Frame', nil, self)
 	self.NameBG:SetFrameLevel(35)
 	self.NameBG:SetHeight(16)
@@ -104,7 +123,7 @@ core.CreateUnitFrameName = function(self, width, height, nameOff)
 	self.Name:SetPoint('BOTTOMLEFT', self.NameBG, 'BOTTOMLEFT', 1, 1)
 	self.Name:SetPoint('BOTTOMRIGHT', self.NameBG, 'BOTTOMRIGHT', 1, 1)
 
-	-- ***** BORDER ********************************************************************************
+	-- ***** BORDER *******************************************************************************
 	do
 		-- Health Border
 		local tex = self.Border:CreateTexture(nil, 'BORDER')
@@ -165,14 +184,14 @@ core.CreateUnitFrameName = function(self, width, height, nameOff)
 		table.insert(self.Border.tex, tex)
 	end
 
-	-- ***** RAID ICON *****************************************************************************
+	-- ***** RAID ICON ****************************************************************************
 	self.RaidIcon = CreateFrame('Frame', nil, self)
 	self.RaidIcon.Override = core.UpdateName
 
-	-- ***** ENGINES *******************************************************************************
+	-- ***** ENGINES ******************************************************************************
 	self:SetScript('OnEnter', UnitFrame_OnEnter)
 	self:SetScript('OnLeave', UnitFrame_OnLeave)
-	if ( oUF_PhantomMenaceSettings.general.healerMode ) then
+	if ( oUF_PhantomMenaceSettings.configuration.healerMode ) then
 		self.Health.PostUpdate = core.UpdateHealth_deficit
 	else
 		self.Health.PostUpdate = core.UpdateHealth_percent
@@ -187,7 +206,7 @@ end
 core.CreateUnitFrameCastbar = function(self, width, height, nameOff)
 	core.CreateUnitFrameName(self, width, height, nameOff)
 
-	-- ***** CASTBAR *******************************************************************************
+	-- ***** CASTBAR ******************************************************************************
 	local cb = CreateFrame('StatusBar', nil, self)
 	cb:SetFrameLevel(self.NameBG:GetFrameLevel()+1)
 	cb:SetStatusBarTexture(settings.tex.solid, 'ARTWORK')
@@ -216,7 +235,7 @@ end
 ]]
 core.CreatePowerbarOffsetted = function(self, leftX, leftY, rightX, rightY)
 
-	-- ***** POWER BAR *****************************************************************************
+	-- ***** POWER BAR ****************************************************************************
 	local pb = CreateFrame('StatusBar', nil, self)
 	pb:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', rightX, rightY)
 	pb:SetStatusBarTexture(settings.tex.solid)
@@ -254,48 +273,12 @@ end
 ]]
 core.CreatePowerbarOffsettedFG = function(self, leftX, leftY, rightX, rightY)
 
-	-- ***** POWER BAR *****************************************************************************
+	-- ***** POWER BAR ****************************************************************************
 	local pb = core.CreatePowerbarOffsetted(self, leftX, leftY, rightX, rightY)
 	pb:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', leftX, leftY)
 	pb:SetFrameLevel(self.Health:GetFrameLevel()+10)
 
 	return pb
-end
-
---[[ Custom SoulShard-Update (SetAlpha instead of Show/Hide)
-	VOID SoulShardOverride(FRAME self, STRING event, STRING unit, STRING powerType)
-]]
-core.SoulShardOverride = function(self, event, unit, powerType)
-	if(self.unit ~= unit or (powerType and powerType ~= 'SOUL_SHARDS')) then return end
-
-	local ss = self.SoulShards
-
-	local num = UnitPower('player', SPELL_POWER_SOUL_SHARDS)
-	for i = 1, SHARD_BAR_NUM_SHARDS do
-		if(i <= num) then
-			ss[i]:SetAlpha(1)
-		else
-			ss[i]:SetAlpha(0.35)
-		end
-	end
-end
-
---[[ Custom HolyPower-Update (SetAlpha instead of Show/Hide)
-	VOID HolyPowerOverride(FRAME self, STRING event, STRING unit, STRING powerType)
-]]
-core.HolyPowerOverride = function(self, event, unit, powerType)
-	if(self.unit ~= unit or (powerType and powerType ~= 'HOLY_POWER')) then return end
-
-	local hp = self.HolyPower
-
-	local num = UnitPower('player', SPELL_POWER_HOLY_POWER)
-	for i = 1, MAX_HOLY_POWER do
-		if(i <= num) then
-			hp[i]:SetAlpha(1)
-		else
-			hp[i]:SetAlpha(0.35)
-		end
-	end
 end
 
 
@@ -309,11 +292,18 @@ end
 core.UpdateName = function(self, event)
 	local name = UnitName(self.unit)
 	local raidIcon = GetRaidTargetIndex(self.unit)
-	if ( raidIcon ) then
+	if ( raidIcon and name ) then
 		self.Name:SetFormattedText('|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_%d:0:0:0:0.5|t |cff%s%s|r', raidIcon, oUF_PhantomMenaceSettings.general.color.name, name)
-	else
+	elseif ( name ) then
 		self.Name:SetFormattedText('|cff%s%s|r', oUF_PhantomMenaceSettings.general.color.name, name)
 	end
+end
+
+--[[
+
+]]
+core.UpdateName_PartyTarget = function(health, unit, min, max)
+	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
 --[[
@@ -407,6 +397,60 @@ core.EclipseBarVisibility = function(self)
 	end
 end
 
+--[[ Custom SoulShard-Update (SetAlpha instead of Show/Hide)
+	VOID SoulShardOverride(FRAME self, STRING event, STRING unit, STRING powerType)
+]]
+core.SoulShardOverride = function(self, event, unit, powerType)
+	if(self.unit ~= unit or (powerType and powerType ~= 'SOUL_SHARDS')) then return end
+
+	local ss = self.SoulShards
+
+	local num = UnitPower('player', SPELL_POWER_SOUL_SHARDS)
+	for i = 1, SHARD_BAR_NUM_SHARDS do
+		if(i <= num) then
+			ss[i]:SetAlpha(1)
+		else
+			ss[i]:SetAlpha(0.35)
+		end
+	end
+end
+
+--[[ Custom HolyPower-Update (SetAlpha instead of Show/Hide)
+	VOID HolyPowerOverride(FRAME self, STRING event, STRING unit, STRING powerType)
+]]
+core.HolyPowerOverride = function(self, event, unit, powerType)
+	if(self.unit ~= unit or (powerType and powerType ~= 'HOLY_POWER')) then return end
+
+	local hp = self.HolyPower
+
+	local num = UnitPower('player', SPELL_POWER_HOLY_POWER)
+	for i = 1, MAX_HOLY_POWER do
+		if(i <= num) then
+			hp[i]:SetAlpha(1)
+		else
+			hp[i]:SetAlpha(0.35)
+		end
+	end
+end
+
+--[[
+
+]]
+core.ThreatUpdate = function(self, event, unit)
+	if(unit ~= self.unit) then return end
+
+	local threat = self.Threat
+
+	unit = unit or self.unit
+	local status = UnitThreatSituation(unit)
+
+	if ( status and (status ~= 0) ) then
+		lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.threat[status]))
+	else
+		lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
+	end
+end
+
 
 -- ************************************************************************************************
 -- ***** HEALTH UPDATES ***************************************************************************
@@ -468,6 +512,62 @@ core.UpdateHealth_pet = function(health, unit, min, max)
 	else
 		health.value:SetFormattedText('|cff%s%s|r', oUF_PhantomMenaceSettings.general.color.healthValue, min)
 	end
+end
+
+--[[
+
+]]
+core.UpdateHealth_raid = function(health, unit, min, max)
+	if ( not UnitIsConnected(unit) ) then
+		health:GetParent().Name:Hide()
+		health.value:SetText(oUF_PhantomMenaceSettings.configuration.strings.off)
+		health.value:Show()
+	elseif ( UnitIsDead(unit) ) then
+		health:GetParent().Name:Hide()
+		health.value:SetText(oUF_PhantomMenaceSettings.configuration.strings.dead)
+		health.value:Show()
+	elseif ( min ~= max ) then
+		local raidIcon = GetRaidTargetIndex(health:GetParent().unit)
+		if ( raidIcon ) then
+			health.value:SetFormattedText('|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_%d:0:0:0:0.5|t |cff%s%d%%|r', raidIcon, oUF_PhantomMenaceSettings.general.color.healthValue, (min/max)*100)
+		else
+			health.value:SetFormattedText('|cff%s%d%%|r', oUF_PhantomMenaceSettings.general.color.healthValue, (min/max)*100)
+		end
+		health.value:Show()
+		health:GetParent().Name:Hide()
+	else
+		health.value:Hide()
+		health:GetParent().Name:Show()
+	end
+	health:GetParent():UNIT_NAME_UPDATE(event, unit)
+end
+
+--[[
+
+]]
+core.UpdateHealth_raidHealer = function(health, unit, min, max)
+	if ( not UnitIsConnected(unit) ) then
+		health:GetParent().Name:Hide()
+		health.value:SetText(oUF_PhantomMenaceSettings.configuration.strings.off)
+		health.value:Show()
+	elseif ( UnitIsDead(unit) ) then
+		health:GetParent().Name:Hide()
+		health.value:SetText(oUF_PhantomMenaceSettings.configuration.strings.dead)
+		health.value:Show()
+	elseif ( min ~= max ) then
+		local raidIcon = GetRaidTargetIndex(health:GetParent().unit)
+		if ( raidIcon ) then
+			health.value:SetFormattedText('|TInterface\\TargetingFrame\\UI-RaidTargetingIcon_%d:0:0:0:0.5|t |cff%s-%s|r', raidIcon, oUF_PhantomMenaceSettings.general.color.healthDeficit, lib.Shorten(max-min))
+		else
+			health.value:SetFormattedText('|cff%s-%s|r', oUF_PhantomMenaceSettings.general.color.healthDeficit, lib.Shorten(max-min))
+		end
+		health.value:Show()
+		health:GetParent().Name:Hide()
+	else
+		health.value:Hide()
+		health:GetParent().Name:Show()
+	end
+	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
 

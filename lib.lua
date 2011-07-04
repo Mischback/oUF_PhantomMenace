@@ -18,8 +18,8 @@ lib.debugging = function(text)
 	DEFAULT_CHAT_FRAME:AddMessage('|cffffd700oUF_PhantomMenace:|r |cffeeeeee'..text..'|r')
 end
 
---[[
-
+--[[ Creates a font-object
+	FONT OBJECT CreateFontObject(FRAME parent, INT size, STRING font)
 ]]
 lib.CreateFontObject = function(parent, size, font)
 	local fo = parent:CreateFontString(nil, 'OVERLAY')
@@ -47,8 +47,8 @@ lib.Shorten = function(value)
 	end
 end
 
---[[
-
+--[[ Applies a given color to an array of textures. Needed to color the border
+	VOID ColorBorder(ARRAY tex, FLOAT r, FLOAT g, FLOAT b, FLOAT a)
 ]]
 lib.ColorBorder = function(tex, r, g, b, a)
 
@@ -64,8 +64,8 @@ lib.ColorBorder = function(tex, r, g, b, a)
 
 end
 
---[[
-
+--[[ Creates a background
+	TEXTURE CreateBack(FRAME target)
 ]]
 lib.CreateBack = function(target)
 
@@ -77,8 +77,8 @@ lib.CreateBack = function(target)
 	return back
 end
 
---[[
-
+--[[ Creates the gloss-effect
+	FRAME CreateGloss(FRAME self, FRAME target)
 ]]
 lib.CreateGloss = function(self, target)
 	local gloss = CreateFrame('Frame', nil, self)
@@ -105,6 +105,150 @@ lib.CreateGloss = function(self, target)
 	gloss.mid:SetPoint('TOPRIGHT', gloss.right, 'TOPLEFT')
 
 	return gloss
+end
+
+--[[
+
+]]
+lib.DropDownMenu = CreateFrame('Frame', 'oUF_PhantomMenace_UnitDropDownMenu', UIParent, 'UIDropDownMenuTemplate')
+
+UIDropDownMenu_Initialize(lib.DropDownMenu, function(self)
+	local unit = self:GetParent().unit
+	if not unit then return end
+
+	local menu, name, id
+	if UnitIsUnit(unit, 'player') then
+		menu = 'SELF'
+	elseif UnitIsUnit(unit, 'vehicle') then
+		menu = 'VEHICLE'
+	elseif UnitIsUnit(unit, 'pet') then
+		menu = 'PET'
+	elseif UnitIsPlayer(unit) then
+		id = UnitInRaid(unit)
+		if id then
+			menu = 'RAID_PLAYER'
+			name = GetRaidRosterInfo(id)
+		elseif UnitInParty(unit) then
+			menu = 'PARTY'
+		else
+			menu = 'PLAYER'
+		end
+	else
+		menu = 'TARGET'
+		name = RAID_TARGET_ICON
+	end
+	if menu then
+		UnitPopup_ShowMenu(self, menu, unit, name, id)
+	end
+end, 'MENU')
+
+lib.menu = function(self)
+	lib.DropDownMenu:SetParent(self)
+	ToggleDropDownMenu(1, nil, lib.DropDownMenu, 'cursor', 0, 0)
+end
+
+
+-- ************************************************************************************************
+
+lib.Vengeance = {
+	['venAura'] = GetSpellInfo(93098),
+	['venTT'] = CreateFrame('GameTooltip', 'VengeanceTooltip', UIParent, 'GameTooltipTemplate')
+}
+lib.Vengeance.venTT:SetOwner(UIParent, 'ANCHOR_NONE')
+
+
+--[[
+
+]]
+lib.Vengeance.getVengeanceValue = function(...)
+	local region, value
+	local text = ''
+	for i = 1, select('#', ...) do
+		region = select(i, ...)
+		if ( region and region:GetObjectType() == 'FontString' and region:GetText() ) then
+			text = text..region:GetText()
+			value = tonumber(string.match(region:GetText(),"%d+"))
+			if value then
+				return value
+			end
+		end
+	end
+	return nil
+end
+
+--[[
+
+]]
+lib.Vengeance.updateVengeance = function(self, event, unit)
+	if not unit or (unit and unit ~= 'player') then return end
+
+	local name = UnitBuff('player', lib.Vengeance.venAura)
+	if ( not name ) then return end
+
+	lib.Vengeance.venTT:ClearLines()
+	lib.Vengeance.venTT:SetUnitBuff('player', lib.Vengeance.venAura)
+
+	numVenTTRegions = lib.Vengeance.venTT:GetNumRegions()
+	local value = nil
+	if ( numVenTTRegions ) then
+		value = lib.Vengeance.getVengeanceValue(lib.Vengeance.venTT:GetRegions())
+	end
+
+	if ( value ) then
+		self:SetValue(value)
+	end
+end
+
+--[[
+
+]]
+lib.Vengeance.checkSpec = function()
+	local isTank
+	local class = settings.playerClass
+	local talentTree = GetPrimaryTalentTree()
+
+	if ( class == 'WARRIOR' and talentTree == 3 ) then
+		isTank = true
+	elseif ( class == 'PALADIN' and talentTree == 2 ) then
+		isTank = true
+	elseif ( class == 'DEATHKNIGHT' and talenTree == 1 ) then
+		isTank = true
+	elseif ( class == 'DRUID' and talentTree == 2 ) then
+		isTank = true
+	end
+	return isTank
+end
+
+--[[
+
+]]
+lib.Vengeance.setUpBar = function(self)
+	if ( not lib.Vengeance.checkSpec ) then return end
+	local maxVen = floor(UnitHealthMax('player')/10)
+	self:SetMinMaxValues(0, maxVen)
+	self:SetValue(0)
+	lib.Vengeance.updateVengeance(self, 'UNIT_AURA', 'player')
+end
+
+--[[
+
+]]
+lib.Vengeance.eventHandler = function(self, event, unit)
+	if ( event == 'UNIT_AURA' ) then
+		lib.Vengeance.updateVengeance(self, event, unit)
+	elseif ( event == 'UNIT_MAXHEALTH' ) then
+		lib.Vengeance.setUpBar(self)
+	elseif ( event == 'PLAYER_REGEN_DISABLED' ) then
+		if ( lib.Vengeance.checkSpec() ) then
+			lib.Vengeance.setUpBar(self)
+			self:RegisterEvent('UNIT_AURA')
+			self:RegisterEvent('UNIT_MAXHEALTH')
+			-- self:RegisterEvent('UNIT_LEVEL')		-- necessary?
+		end
+	elseif ( event == 'PLAYER_REGEN_ENABLED' ) then
+		self:UnregisterEvent('UNIT_AURA')
+		self:UnregisterEvent('UNIT_MAXHEALTH')
+	end
 end
 
 -- ************************************************************************************************

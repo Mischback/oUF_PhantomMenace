@@ -5,20 +5,20 @@
 local ADDON_NAME, ns = ...
 
 local settings = {}
--- *********************************************************************************
+-- ************************************************************************************************
 
 settings.fonts = {
-	[1] = [[Interface\AddOns\oUF_PredatorPlay\media\BIRTH_OF_A_HERO.ttf]],
-	[2] = [[Interface\AddOns\oUF_PredatorPlay\media\Catenary-Stamp.ttf]],
-	[3] = [[Interface\AddOns\oUF_PredatorPlay\media\EuropeUnderground_worn.ttf]],
-	-- [1] = [[Interface\AddOns\oUF_PredatorPlay\media]],
+	[1] = [[Interface\AddOns\oUF_PhantomMenace\media\BIRTH_OF_A_HERO.ttf]],
+	[2] = [[Interface\AddOns\oUF_PhantomMenace\media\Catenary-Stamp.ttf]],
+	[3] = [[Interface\AddOns\oUF_PhantomMenace\media\EuropeUnderground_worn.ttf]],
+	-- [1] = [[Interface\AddOns\oUF_PhantomMenace\media]],
 }
 
 settings.tex = {
-	['bar'] = [[Interface\AddOns\oUF_PredatorPlay\media\bar.tga]],
-	['solid'] = [[Interface\AddOns\oUF_PredatorPlay\media\solid.tga]],
-	['gloss'] = [[Interface\AddOns\oUF_PredatorPlay\media\gloss.tga]],
-	['overlay'] = [[Interface\AddOns\oUF_PredatorPlay\media\overlay.tga]],
+	['bar'] = [[Interface\AddOns\oUF_PhantomMenace\media\bar.tga]],
+	['solid'] = [[Interface\AddOns\oUF_PhantomMenace\media\solid.tga]],
+	['gloss'] = [[Interface\AddOns\oUF_PhantomMenace\media\gloss.tga]],
+	['overlay'] = [[Interface\AddOns\oUF_PhantomMenace\media\overlay.tga]],
 }
 
 settings.colors = setmetatable({
@@ -37,8 +37,15 @@ settings.colors = setmetatable({
 	{ __index = oUF.colors })
 
 settings.init = {
-	['general'] = {
+	['configuration'] = {
 		['healerMode'] = false,
+		['playerInGroup'] = true,
+		['strings'] = {
+			['off'] = 'off',
+			['dead'] = 'dead',
+		},
+	},
+	['general'] = {
 		['color'] = {
 			['background'] = { 0, 0, 0, 1 },
 			['border'] = { 1, 1, 1, 0.2 },
@@ -52,6 +59,7 @@ settings.init = {
 			['name'] = 'DDDDDD',
 			['nameBG'] = { 0.1, 0.1, 0.1 },
 			['castbar'] = { 0.86, 0.5, 0, 1 },
+			['vengeance'] = { 1, 1, 1, 1 },
 			['threat'] = {
 				[1] = {0.8, 0.8, 0, 0.9},
 				[2] = {1, 0.6, 0, 0.7},
@@ -64,7 +72,14 @@ settings.init = {
 			['WARLOCK'] = { 1, 0, 1 },
 			['PALADIN'] = { 1, 1, 0 }
 		},
+		['runes'] = {
+			['spacing'] = 9,
+		},
 		['glossIntensity'] = 0.7
+	},
+	['playerCastbar'] = {
+		['width'] = 250,
+		['height'] = 18,
 	},
 	['player'] = {
 		['width'] = 180,
@@ -107,13 +122,37 @@ settings.init = {
 		['width'] = 80,
 		['height'] = 24,
 		['nameplateOffset'] = 10,
-	}
+	},
+	['party'] = {
+		['width'] = 100,
+		['height'] = 20,
+		['powerWidth'] = 3,
+		['powerOffset'] = 35,
+		['xOffset'] = 8,
+		['yOffset'] = 12,
+	},
+	['raid'] = {
+		['width'] = 80,
+		['height'] = 20,
+		['powerWidth'] = 3,
+		['powerOffset'] = 25,
+		['xOffset'] = 8,
+		['yOffset'] = 12,
+	},
+	['maintank'] = {
+		['width'] = 100,
+		['height'] = 20,
+	},
+	['grouptarget'] = {
+		['width'] = 80,
+		['height'] = 20,
+	},
 }
 
 
--- *********************************************************************************
+-- ************************************************************************************************
 
 settings.playerClass = select(2, UnitClass('player'))
 
--- *********************************************************************************
+-- ************************************************************************************************
 ns.settings = settings
