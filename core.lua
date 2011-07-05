@@ -223,6 +223,8 @@ core.CreateUnitFrameCastbar = function(self, width, height, nameOff)
 	cb.Text:SetTextColor(1, 1, 1)
 
 	self.Castbar = cb
+	self.Castbar.PostCastStart = core.CheckForInterrupt
+	self.Castbar.PostChannelStart = core.CheckForInterrupt
 end
 
 
@@ -304,46 +306,6 @@ end
 ]]
 core.UpdateName_PartyTarget = function(health, unit, min, max)
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
-end
-
---[[
-
-]]
-core.PostCreateIcon = function(self, b)
-
-	b.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-
-	b.cd:SetAllPoints(b)
-	b.cd:SetFrameLevel(b:GetFrameLevel()-1)
-
-	b.back = lib.CreateBack(b)
-
-	b.border = {}
-	local tex = b:CreateTexture(nil, 'BORDER')
-	tex:SetPoint('TOPLEFT', b, 'TOPLEFT', -2, 2)
-	tex:SetPoint('BOTTOMRIGHT', b, 'TOPRIGHT', 2, 1)
-	tex:SetTexture(settings.tex.solid)
-	table.insert(b.border, tex)
-
-	tex = b:CreateTexture(nil, 'BORDER')
-	tex:SetPoint('TOPLEFT', b, 'TOPRIGHT', 1, 1)
-	tex:SetPoint('BOTTOMRIGHT', b, 'BOTTOMRIGHT', 2, -2)
-	tex:SetTexture(settings.tex.solid)
-	table.insert(b.border, tex)
-
-	tex = b:CreateTexture(nil, 'BORDER')
-	tex:SetPoint('TOPLEFT', b, 'BOTTOMLEFT', -2, -1)
-	tex:SetPoint('BOTTOMRIGHT', b, 'BOTTOMRIGHT', 1, -2)
-	tex:SetTexture(settings.tex.solid)
-	table.insert(b.border, tex)
-
-	tex = b:CreateTexture(nil, 'BORDER')
-	tex:SetPoint('TOPLEFT', b, 'TOPLEFT', -2, 1)
-	tex:SetPoint('BOTTOMRIGHT', b, 'BOTTOMLEFT', -1, -1)
-	tex:SetTexture(settings.tex.solid)
-	table.insert(b.border, tex)
-
-	lib.ColorBorder(b.border, unpack(oUF_PhantomMenaceSettings.general.color.border))
 end
 
 --[[
@@ -451,6 +413,16 @@ core.ThreatUpdate = function(self, event, unit)
 	end
 end
 
+--[[
+
+]]
+core.CheckForInterrupt = function(bar, unit)
+	if ( bar.interrupt and UnitCanAttack('player', unit) ) then
+		bar:SetStatusBarColor(unpack(oUF_PhantomMenaceSettings.general.color.castbarNoInterrupt))
+	else
+		bar:SetStatusBarColor(unpack(oUF_PhantomMenaceSettings.general.color.castbar))
+	end
+end
 
 -- ************************************************************************************************
 -- ***** HEALTH UPDATES ***************************************************************************
@@ -568,6 +540,51 @@ core.UpdateHealth_raidHealer = function(health, unit, min, max)
 		health:GetParent().Name:Show()
 	end
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
+end
+
+
+-- ************************************************************************************************
+-- ***** AURA STUFF *******************************************************************************
+-- ************************************************************************************************
+
+--[[
+
+]]
+core.PostCreateIcon = function(self, b)
+
+	b.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+
+	b.cd:SetAllPoints(b)
+	b.cd:SetFrameLevel(b:GetFrameLevel()-1)
+
+	b.back = lib.CreateBack(b)
+
+	b.border = {}
+	local tex = b:CreateTexture(nil, 'BORDER')
+	tex:SetPoint('TOPLEFT', b, 'TOPLEFT', -2, 2)
+	tex:SetPoint('BOTTOMRIGHT', b, 'TOPRIGHT', 2, 1)
+	tex:SetTexture(settings.tex.solid)
+	table.insert(b.border, tex)
+
+	tex = b:CreateTexture(nil, 'BORDER')
+	tex:SetPoint('TOPLEFT', b, 'TOPRIGHT', 1, 1)
+	tex:SetPoint('BOTTOMRIGHT', b, 'BOTTOMRIGHT', 2, -2)
+	tex:SetTexture(settings.tex.solid)
+	table.insert(b.border, tex)
+
+	tex = b:CreateTexture(nil, 'BORDER')
+	tex:SetPoint('TOPLEFT', b, 'BOTTOMLEFT', -2, -1)
+	tex:SetPoint('BOTTOMRIGHT', b, 'BOTTOMRIGHT', 1, -2)
+	tex:SetTexture(settings.tex.solid)
+	table.insert(b.border, tex)
+
+	tex = b:CreateTexture(nil, 'BORDER')
+	tex:SetPoint('TOPLEFT', b, 'TOPLEFT', -2, 1)
+	tex:SetPoint('BOTTOMRIGHT', b, 'BOTTOMLEFT', -1, -1)
+	tex:SetTexture(settings.tex.solid)
+	table.insert(b.border, tex)
+
+	lib.ColorBorder(b.border, unpack(oUF_PhantomMenaceSettings.general.color.border))
 end
 
 
