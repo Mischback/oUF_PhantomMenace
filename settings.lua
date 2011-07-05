@@ -59,6 +59,7 @@ settings.init = {
 			['name'] = 'DDDDDD',
 			['nameBG'] = { 0.1, 0.1, 0.1 },
 			['castbar'] = { 0.86, 0.5, 0, 1 },
+			['castbarNoInterrupt'] = { 1, 0, 0, 1 },
 			['vengeance'] = { 1, 1, 1, 1 },
 			['threat'] = {
 				[1] = {0.8, 0.8, 0, 0.9},

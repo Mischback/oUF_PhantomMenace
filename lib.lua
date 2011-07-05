@@ -161,7 +161,7 @@ lib.Vengeance.venTT:SetOwner(UIParent, 'ANCHOR_NONE')
 
 ]]
 lib.Vengeance.getVengeanceValue = function(...)
-	local region, value
+	local region, value, i
 	local text = ''
 	for i = 1, select('#', ...) do
 		region = select(i, ...)
@@ -173,6 +173,7 @@ lib.Vengeance.getVengeanceValue = function(...)
 			end
 		end
 	end
+	lib.debugging('DEBUG: no value found!')
 	return nil
 end
 
@@ -188,15 +189,13 @@ lib.Vengeance.updateVengeance = function(self, event, unit)
 	lib.Vengeance.venTT:ClearLines()
 	lib.Vengeance.venTT:SetUnitBuff('player', lib.Vengeance.venAura)
 
-	numVenTTRegions = lib.Vengeance.venTT:GetNumRegions()
+	local numVenTTRegions = lib.Vengeance.venTT:GetNumRegions()
 	local value = nil
 	if ( numVenTTRegions ) then
 		value = lib.Vengeance.getVengeanceValue(lib.Vengeance.venTT:GetRegions())
 	end
 
-	if ( value ) then
-		self:SetValue(value)
-	end
+	self:SetValue(value or 0)
 end
 
 --[[
@@ -224,8 +223,9 @@ end
 ]]
 lib.Vengeance.setUpBar = function(self)
 	if ( not lib.Vengeance.checkSpec ) then return end
-	local maxVen = floor(UnitHealthMax('player')/10)
-	self:SetMinMaxValues(0, maxVen)
+	local maxHealth = UnitHealthMax('player')
+	local _, stamina = UnitStat('player', 3)
+	self:SetMinMaxValues(0, (0.1 * (maxHealth - 15*stamina) + stamina))
 	self:SetValue(0)
 	lib.Vengeance.updateVengeance(self, 'UNIT_AURA', 'player')
 end
@@ -236,18 +236,12 @@ end
 lib.Vengeance.eventHandler = function(self, event, unit)
 	if ( event == 'UNIT_AURA' ) then
 		lib.Vengeance.updateVengeance(self, event, unit)
-	elseif ( event == 'UNIT_MAXHEALTH' ) then
+	elseif ( (event == 'UNIT_MAXHEALTH') or (event == 'PLAYER_ENTERING_WORLD') or (event == 'UNIT_LEVEL') ) then
 		lib.Vengeance.setUpBar(self)
-	elseif ( event == 'PLAYER_REGEN_DISABLED' ) then
+	else
 		if ( lib.Vengeance.checkSpec() ) then
 			lib.Vengeance.setUpBar(self)
-			self:RegisterEvent('UNIT_AURA')
-			self:RegisterEvent('UNIT_MAXHEALTH')
-			-- self:RegisterEvent('UNIT_LEVEL')		-- necessary?
 		end
-	elseif ( event == 'PLAYER_REGEN_ENABLED' ) then
-		self:UnregisterEvent('UNIT_AURA')
-		self:UnregisterEvent('UNIT_MAXHEALTH')
 	end
 end
 
