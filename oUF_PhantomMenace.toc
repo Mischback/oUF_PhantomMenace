@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## Interface: 40200
 ## Author: Mischback
 ## X-URI: http://gihub.com/Mischback
@@ -14,19 +13,3 @@ settings.lua
 lib.lua
 core.lua
 layout.lua
-=======
-## Interface: 40000
-## Author: Mischback
-## Title: oUF|cff00dd33 PhantomMenace|r
-## RequiredDeps: oUF
-## OptionalDeps: oUF_ResComm, oUF_boring_totembar
-## X-Category: UnitFrame
-## SavedVariables: PhantomMenaceAuraList
-## SavedVariablesPerCharacter: PhantomMenaceOptions, PhantomMenacePositions
-
-settings.lua
-lib.lua
-menu.lua
-core.lua
-layout.lua
->>>>>>> 5cdeb3ca4ce54e72e6a343f53c244f640f1cb02c
