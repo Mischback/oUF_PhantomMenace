@@ -79,7 +79,7 @@ core.CreateUnitFrame = function(self, width, height)
 	self.Text = CreateFrame('Frame', nil, self)
 	self.Text:SetFrameLevel(self.Health:GetFrameLevel()+20)
 
-	self.Health.value = lib.CreateFontObject(self.Text, 12, settings.fonts[2])
+	self.Health.value = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
 	self.Health.value:SetJustifyH('RIGHT')
 	self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -1, 1)
 
@@ -118,7 +118,7 @@ core.CreateUnitFrameName = function(self, width, height, nameOff)
 	self.NameBG.back = lib.CreateBack(self.NameBG)
 	self.NameBG.Gloss = lib.CreateGloss(self, self.NameBG)
 
-	self.Name = lib.CreateFontObject(self.NameBG, 12, settings.fonts[2])
+	self.Name = lib.CreateFontObject(self.NameBG, 12, settings.fonts['default'])
 	self.Name:SetTextColor(1, 1, 1)
 	self.Name:SetPoint('BOTTOMLEFT', self.NameBG, 'BOTTOMLEFT', 1, 1)
 	self.Name:SetPoint('BOTTOMRIGHT', self.NameBG, 'BOTTOMRIGHT', 1, 1)
@@ -217,7 +217,7 @@ core.CreateUnitFrameCastbar = function(self, width, height, nameOff)
 	cb.bg:SetAllPoints(cb)
 	cb.bg:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.nameBG))
 
-	cb.Text = lib.CreateFontObject(cb, 12, settings.fonts[2])
+	cb.Text = lib.CreateFontObject(cb, 12, settings.fonts['default'])
 	cb.Text:SetPoint('BOTTOMLEFT', cb, 'BOTTOMLEFT', 1, 1)
 	cb.Text:SetPoint('BOTTOMRIGHT', cb, 'BOTTOMRIGHT', 1, 1)
 	cb.Text:SetTextColor(1, 1, 1)
@@ -395,8 +395,34 @@ core.HolyPowerOverride = function(self, event, unit, powerType)
 	end
 end
 
---[[
+--[[ Custom Totem-Update (to update statusbars for totems)
+	VOID TotemOverride(FRAME self, STRING event, INT slot)
+]]
+core.TotemOverride = function(self, event, slot)
+	local totems = self.Totems
 
+	local totem = totems[slot]
+	local haveTotem, name, start, duration, icon = GetTotemInfo(slot)
+	if(duration > 0) then
+		totem:SetMinMaxValues(0, duration)
+		totem.start = start
+		totem.duration = duration
+		totem.TimeSinceLastUpdate = 0
+		totem:SetScript('OnUpdate', function(self, elapsed)
+			self.TimeSinceLastUpdate = self.TimeSinceLastUpdate +  elapsed
+			if ( self.TimeSinceLastUpdate > 0.5 ) then
+				self.TimeSinceLastUpdate = 0
+				self:SetValue(self.start+self.duration-GetTime())
+			end
+		end)
+		totem:Show()
+	else
+		totem:Hide()
+	end
+end
+
+--[[ Custom threat-function (highlights the frames border)
+	VOID ThreatUpdate(FRAME self, STRING event, STRING unit)
 ]]
 core.ThreatUpdate = function(self, event, unit)
 	if(unit ~= self.unit) then return end
@@ -413,6 +439,28 @@ core.ThreatUpdate = function(self, event, unit)
 	end
 end
 
+--[[ Custom function to display (custom) LfD-icons
+	VOID LFDOverride(FRAME self, STRING event)
+]]
+core.LFDOverride = function(self, event)
+	local lfdrole = self.LFDRole
+
+	local role = UnitGroupRolesAssigned(self.unit)
+
+	if ( role == 'TANK' ) then
+		lfdrole:SetTexture(settings.tex.role.tank)
+		lfdrole:Show()
+	elseif ( role == 'HEALER' ) then
+		lfdrole:SetTexture(settings.tex.role.heal)
+		lfdrole:Show()
+	elseif ( role == 'DAMAGER' ) then
+		lfdrole:SetTexture(settings.tex.role.damage)
+		lfdrole:Show()
+	else
+		lfdrole:Hide()
+	end
+end
+
 --[[
 
 ]]
@@ -422,6 +470,22 @@ core.CheckForInterrupt = function(bar, unit)
 	else
 		bar:SetStatusBarColor(unpack(oUF_PhantomMenaceSettings.general.color.castbar))
 	end
+end
+
+--[[
+
+]]
+core.FilterSpecialsFocus = function(icons, unit, icon, name, rank, texture, count, dtype, duration, timeLeft, caster, isStealable, shouldConsolidate, spellID)
+	if ( caster ~= 'player' ) then return false end
+	return lib.in_array(spellID, settings.SpecialAurasFocus)
+end
+
+--[[
+
+]]
+core.FilterSpecialsParty = function(icons, unit, icon, name, rank, texture, count, dtype, duration, timeLeft, caster, isStealable, shouldConsolidate, spellID)
+	if ( caster ~= 'player' ) then return false end
+	return lib.in_array(spellID, settings.SpecialAurasParty)
 end
 
 -- ************************************************************************************************
@@ -540,6 +604,67 @@ core.UpdateHealth_raidHealer = function(health, unit, min, max)
 		health:GetParent().Name:Show()
 	end
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
+end
+
+
+-- ************************************************************************************************
+-- ***** POWER UPDATES ****************************************************************************
+-- ************************************************************************************************
+
+--[[
+
+]]
+core.UpdatePower_player = function(power, unit, min, max)
+
+	power.value:SetTextColor(unpack(power:GetParent().colors.class[settings.playerClass]))
+
+	--[[ DAMN Druid stances:
+		0 - Humanoid
+		1 - Bear
+		2 - Swimming
+		3 - Cat
+		4 - Travel
+		5 - Moonkin
+		Handle Bear like Warrior, Cat like Rogue
+	]]
+	local shapeshiftform = GetShapeshiftForm()
+
+	if ( (settings.playerClass == 'WARRIOR') or
+		 (settings.playerClass == 'DEATHKNIGHT') or
+		 ((settings.playerClass == 'DRUID') and (shapeshiftform == 1)) ) then
+		if ( min == 0 ) then
+			power.value:SetText('')
+		else
+			power.value:SetText(min)
+		end
+	elseif ( (settings.playerClass == 'HUNTER') or
+		 (settings.playerClass == 'ROGUE') or
+		 ((settings.playerClass == 'DRUID') and (shapeshiftform == 3)) ) then
+		if ( min == max ) then
+			power.value:SetText('')
+		else
+			power.value:SetText(min)
+		end
+	else
+		if ( min == max ) then
+			power.value:SetText(min)
+		else
+			power.value:SetFormattedText('%s | %d%%', lib.Shorten(min), (min/max)*100)
+		end
+	end
+
+end
+
+
+--[[
+
+]]
+core.UpdatePower_target = function(power, unit, min, max)
+	if ( min > 0 ) then
+		power.value:SetText(lib.Shorten(min))
+	else
+		power.value:SetText('')
+	end
 end
 
 

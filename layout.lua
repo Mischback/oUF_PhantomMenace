@@ -14,13 +14,14 @@ local PhantomMenace = CreateFrame('Frame')
 oUF_PhantomMenaceSettings = nil
 -- ************************************************************************************************
 
---[[
-
+--[[ Creates a castbar for the player
+	This castbar is movable with oUF_MovableFrames, since it is its own unitframe!
 ]]
 local function createPlayerCastbar(self)
 	local cfg = oUF_PhantomMenaceSettings['playerCastbar']
 
 	self:SetSize(cfg.width, cfg.height)
+	self:EnableMouse(false)
 
 	local cb = CreateFrame('StatusBar', nil, self)
 	cb:SetFrameLevel(41)
@@ -36,13 +37,13 @@ local function createPlayerCastbar(self)
 	cb.SafeZone:SetTexture(settings.tex.solid)
 	cb.SafeZone:SetVertexColor(.69,.31,.31)
 
-	cb.Text = lib.CreateFontObject(cb, 12, settings.fonts[2])
+	cb.Text = lib.CreateFontObject(cb, 12, settings.fonts['default'])
 	cb.Text:SetPoint('LEFT', 3, -1)
 	cb.Text:SetPoint('RIGHT', -15, -1)
 	cb.Text:SetTextColor(1, 1, 1)
 	cb.Text:SetJustifyH('LEFT')
 
-	cb.Time = lib.CreateFontObject(cb, 12, settings.fonts[2])
+	cb.Time = lib.CreateFontObject(cb, 12, settings.fonts['default'])
 	cb.Time:SetPoint('RIGHT', -3, -1)
 	cb.Time:SetTextColor(1, 1, 1)
 	cb.Time:SetJustifyH('RIGHT')
@@ -142,27 +143,34 @@ local function createPlayer(self)
 	core.CreateUnitFrame(self, cfg.width, cfg.height)
 
 	self.Power = core.CreatePowerbarOffsettedBG(self, -cfg.powerWidth, 0, -cfg.powerOffset, -cfg.powerWidth)
+	if ( cfg.showPowerValue ) then
+		self.Power.value = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
+		self.Power.value:SetJustifyH('LEFT')
+		self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 1, 1)
+	end
 
 	-- ***** BUFFS/DEBUFFS ************************************************************************
-	self.Buffs = CreateFrame('Frame', nil, self)
-	self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+7))
-	-- self.Buffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+floor(cfg.specialPowerHeight/2)+1)
-	-- self.Buffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
-	self.Buffs.size = cfg.auraSize
-	self.Buffs.spacing = cfg.auraSpacing
-	self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Buffs.PostCreateIcon = core.PostCreateIcon
-	self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
+	if ( cfg.showAura ) then
+		self.Buffs = CreateFrame('Frame', nil, self)
+		self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+7))
+		-- self.Buffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+floor(cfg.specialPowerHeight/2)+1)
+		-- self.Buffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
+		self.Buffs.size = cfg.auraSize
+		self.Buffs.spacing = cfg.auraSpacing
+		self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Buffs.PostCreateIcon = core.PostCreateIcon
+		self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
 
-	self.Debuffs = CreateFrame('Frame', nil, self)
-	self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
-	self.Debuffs.size = cfg.auraSize
-	self.Debuffs.spacing = cfg.auraSpacing
-	self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Debuffs.PostCreateIcon = core.PostCreateIcon
-	self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+		self.Debuffs = CreateFrame('Frame', nil, self)
+		self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
+		self.Debuffs.size = cfg.auraSize
+		self.Debuffs.spacing = cfg.auraSpacing
+		self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Debuffs.PostCreateIcon = core.PostCreateIcon
+		self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+	end
 
 	-- ***** BORDER *******************************************************************************
 	do
@@ -222,7 +230,7 @@ local function createPlayer(self)
 
 	-- ***** SPECIAL POWERS ***********************************************************************
 	self.SpecialPower = CreateFrame('Frame', nil, self)
-	if ( class == 'DRUID' ) then
+	if ( class == 'DRUID' and cfg.showSpecialPower ) then
 		-- Eclipse Bar
 		local ebWidth = cfg.width-(2*cfg.specialPowerOffset)
 
@@ -246,6 +254,7 @@ local function createPlayer(self)
 		eb.SolarBar:SetStatusBarTexture(settings.tex.solid)
 		eb.SolarBar:SetStatusBarColor(0.95, 0.73, 0.15)
 
+		-- ***** BORDER STUFF (fix the border for the eclipse bar) ********************************
 		do
 			_G['TexPMPlayerTop']:Hide()
 
@@ -290,7 +299,8 @@ local function createPlayer(self)
 
 		self.EclipseBar = eb
 		self.EclipseBar.PostUpdateVisibility = core.EclipseBarVisibility
-	elseif ( class == 'WARLOCK' or class == 'PALADIN' ) then
+
+	elseif ( (class == 'WARLOCK' or class == 'PALADIN') and cfg.showSpecialPower ) then
 		local hs = CreateFrame('Frame', nil, self)
 		hs:SetFrameLevel(35)
 		hs:SetSize(oUF_PhantomMenaceSettings.general.holyshardtotems.width*3+oUF_PhantomMenaceSettings.general.holyshardtotems.spacing*2, cfg.specialPowerHeight)
@@ -326,6 +336,7 @@ local function createPlayer(self)
 		hs.back[3]:SetPoint('BOTTOMRIGHT', hs[3], 'BOTTOMRIGHT', 3, -3)
 		hs.back[3]:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.background))
 
+		-- ***** BORDER STUFF (create and fix the borders for shards/holy power) ******************
 		do
 			_G['TexPMPlayerTop']:Hide()
 
@@ -441,7 +452,8 @@ local function createPlayer(self)
 			self.SoulShards = hs
 			self.SoulShards.Override = core.SoulShardOverride
 		end
-	elseif ( class == 'DEATHKNIGHT' ) then
+
+	elseif ( class == 'DEATHKNIGHT' and cfg.showSpecialPower ) then
 		local rWidth = ((cfg.width-2*cfg.specialPowerOffset)-5*oUF_PhantomMenaceSettings.general.runes.spacing)/6
 		local r = CreateFrame('Frame', nil, self)
 		r:SetFrameLevel(35)
@@ -502,6 +514,7 @@ local function createPlayer(self)
 		r.back[6]:SetPoint('BOTTOMRIGHT', r[6], 'BOTTOMRIGHT', 3, -3)
 		r.back[6]:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.background))
 
+		-- ***** BORDER STUFF (create and fix the border for the runes) ***************************
 		do
 			_G['TexPMPlayerTop']:Hide()
 
@@ -706,10 +719,224 @@ local function createPlayer(self)
 
 		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+floor(cfg.specialPowerHeight/2)+1)
 		self.Runes = r
+
+	elseif ( class == 'SHAMAN' and cfg.showSpecialPower ) then
+		local t = CreateFrame('Frame', nil, self)
+		t:SetFrameLevel(35)
+		t:SetSize(oUF_PhantomMenaceSettings.general.holyshardtotems.width*4+oUF_PhantomMenaceSettings.general.holyshardtotems.spacing*3, cfg.specialPowerHeight)
+		t:SetPoint('RIGHT', self, 'TOPRIGHT', -cfg.specialPowerOffset, 1)
+
+		t[4] = CreateFrame('StatusBar', nil, t)
+		t[4]:SetSize(oUF_PhantomMenaceSettings.general.holyshardtotems.width, cfg.specialPowerHeight)
+		t[4]:SetFrameLevel(61)
+		t[4]:SetPoint('RIGHT', t, 'RIGHT')
+		t[4]:SetStatusBarTexture(settings.tex.solid)
+		t[4]:SetStatusBarColor(unpack(self.colors.totems[AIR_TOTEM_SLOT]))
+		t[3] = CreateFrame('StatusBar', nil, t)
+		t[3]:SetSize(oUF_PhantomMenaceSettings.general.holyshardtotems.width, cfg.specialPowerHeight)
+		t[3]:SetFrameLevel(61)
+		t[3]:SetPoint('TOPRIGHT', t[4], 'TOPLEFT', -oUF_PhantomMenaceSettings.general.holyshardtotems.spacing, 0)
+		t[3]:SetStatusBarTexture(settings.tex.solid)
+		t[3]:SetStatusBarColor(unpack(self.colors.totems[WATER_TOTEM_SLOT]))
+		t[2] = CreateFrame('StatusBar', nil, t)
+		t[2]:SetSize(oUF_PhantomMenaceSettings.general.holyshardtotems.width, cfg.specialPowerHeight)
+		t[2]:SetFrameLevel(61)
+		t[2]:SetPoint('TOPRIGHT', t[3], 'TOPLEFT', -oUF_PhantomMenaceSettings.general.holyshardtotems.spacing, 0)
+		t[2]:SetStatusBarTexture(settings.tex.solid)
+		t[2]:SetStatusBarColor(unpack(self.colors.totems[EARTH_TOTEM_SLOT]))
+		t[1] = CreateFrame('StatusBar', nil, t)
+		t[1]:SetSize(oUF_PhantomMenaceSettings.general.holyshardtotems.width, cfg.specialPowerHeight)
+		t[1]:SetFrameLevel(61)
+		t[1]:SetPoint('TOPRIGHT', t[2], 'TOPLEFT', -oUF_PhantomMenaceSettings.general.holyshardtotems.spacing, 0)
+		t[1]:SetStatusBarTexture(settings.tex.solid)
+		t[1]:SetStatusBarColor(unpack(self.colors.totems[FIRE_TOTEM_SLOT]))
+
+		t.back = {}
+		t.back[1] = t:CreateTexture(nil, 'BACKGROUND')
+		t.back[1]:SetPoint('TOPLEFT', t[1], 'TOPLEFT', -3, 3)
+		t.back[1]:SetPoint('BOTTOMRIGHT', t[1], 'BOTTOMRIGHT', 3, -3)
+		t.back[1]:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.background))
+		t.back[2] = t:CreateTexture(nil, 'BACKGROUND')
+		t.back[2]:SetPoint('TOPLEFT', t[2], 'TOPLEFT', -3, 3)
+		t.back[2]:SetPoint('BOTTOMRIGHT', t[2], 'BOTTOMRIGHT', 3, -3)
+		t.back[2]:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.background))
+		t.back[3] = t:CreateTexture(nil, 'BACKGROUND')
+		t.back[3]:SetPoint('TOPLEFT', t[3], 'TOPLEFT', -3, 3)
+		t.back[3]:SetPoint('BOTTOMRIGHT', t[3], 'BOTTOMRIGHT', 3, -3)
+		t.back[3]:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.background))
+		t.back[4] = t :CreateTexture(nil, 'BACKGROUND')
+		t.back[4]:SetPoint('TOPLEFT', t[4], 'TOPLEFT', -3, 3)
+		t.back[4]:SetPoint('BOTTOMRIGHT', t[4], 'BOTTOMRIGHT', 3, -3)
+		t.back[4]:SetTexture(unpack(oUF_PhantomMenaceSettings.general.color.background))
+
+		t.c = {}
+		t.c[1] = t:CreateTexture(nil, 'ARTWORK')
+		t.c[1]:SetAllPoints(t[1])
+		t.c[1]:SetTexture(settings.tex.solid)
+		t.c[1]:SetVertexColor(unpack(self.colors.totems[FIRE_TOTEM_SLOT]))
+		t.c[1]:SetAlpha(0.5)
+		t.c[2] = t:CreateTexture(nil, 'ARTWORK')
+		t.c[2]:SetAllPoints(t[2])
+		t.c[2]:SetTexture(settings.tex.solid)
+		t.c[2]:SetVertexColor(unpack(self.colors.totems[EARTH_TOTEM_SLOT]))
+		t.c[2]:SetAlpha(0.5)
+		t.c[3] = t:CreateTexture(nil, 'ARTWORK')
+		t.c[3]:SetAllPoints(t[3])
+		t.c[3]:SetTexture(settings.tex.solid)
+		t.c[3]:SetVertexColor(unpack(self.colors.totems[WATER_TOTEM_SLOT]))
+		t.c[3]:SetAlpha(0.5)
+		t.c[4] = t:CreateTexture(nil, 'ARTWORK')
+		t.c[4]:SetAllPoints(t[4])
+		t.c[4]:SetTexture(settings.tex.solid)
+		t.c[4]:SetVertexColor(unpack(self.colors.totems[AIR_TOTEM_SLOT]))
+		t.c[4]:SetAlpha(0.5)
+
+		-- ***** BORDER STUFF (create and fix the border for the totems) **************************
+		do
+			_G['TexPMPlayerTop']:Hide()
+
+			local tex = self.Border:CreateTexture('TexPMPlayerSpecial01', 'BORDER')
+			tex:SetPoint('TOPLEFT', self.Health, 'TOPLEFT', -2, 2)
+			tex:SetPoint('BOTTOM', self.Health, 'TOP', 0, 1)
+			tex:SetPoint('RIGHT', t[1], 'LEFT', -2, 0)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial02', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[1], 'TOPLEFT', -2, 2)
+			tex:SetPoint('BOTTOMRIGHT', t[1], 'TOPRIGHT', 2, 1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial03', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[1], 'TOPRIGHT', 1, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[1], 'BOTTOMRIGHT', 2, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial04', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[1], 'BOTTOMLEFT', -2, -1)
+			tex:SetPoint('BOTTOMRIGHT', t[1], 'BOTTOMRIGHT', 1, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial05', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[1], 'TOPLEFT', -2, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[1], 'BOTTOMLEFT', -1, -1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial06', 'BORDER')
+			tex:SetPoint('TOP', self.Health, 'TOP', 0, 2)
+			tex:SetPoint('BOTTOM', self.Health, 'TOP', 0, 1)
+			tex:SetPoint('LEFT', t[1], 'RIGHT', 2, 0)
+			tex:SetPoint('RIGHT', t[2], 'LEFT', -2, 0)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial07', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[2], 'TOPLEFT', -2, 2)
+			tex:SetPoint('BOTTOMRIGHT', t[2], 'TOPRIGHT', 2, 1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial08', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[2], 'TOPRIGHT', 1, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[2], 'BOTTOMRIGHT', 2, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial09', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[2], 'BOTTOMLEFT', -2, -1)
+			tex:SetPoint('BOTTOMRIGHT', t[2], 'BOTTOMRIGHT', 1, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial10', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[2], 'TOPLEFT', -2, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[2], 'BOTTOMLEFT', -1, -1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial11', 'BORDER')
+			tex:SetPoint('TOP', self.Health, 'TOP', 0, 2)
+			tex:SetPoint('BOTTOM', self.Health, 'TOP', 0, 1)
+			tex:SetPoint('LEFT', t[2], 'RIGHT', 2, 0)
+			tex:SetPoint('RIGHT', t[3], 'LEFT', -2, 0)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial12', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[3], 'TOPLEFT', -2, 2)
+			tex:SetPoint('BOTTOMRIGHT', t[3], 'TOPRIGHT', 2, 1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial13', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[3], 'TOPRIGHT', 1, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[3], 'BOTTOMRIGHT', 2, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial14', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[3], 'BOTTOMLEFT', -2, -1)
+			tex:SetPoint('BOTTOMRIGHT', t[3], 'BOTTOMRIGHT', 1, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial15', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[3], 'TOPLEFT', -2, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[3], 'BOTTOMLEFT', -1, -1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial16', 'BORDER')
+			tex:SetPoint('TOP', self.Health, 'TOP', 0, 2)
+			tex:SetPoint('BOTTOM', self.Health, 'TOP', 0, 1)
+			tex:SetPoint('LEFT', t[3], 'RIGHT', 2, 0)
+			tex:SetPoint('RIGHT', t[4], 'LEFT', -2, 0)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial17', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[4], 'TOPLEFT', -2, 2)
+			tex:SetPoint('BOTTOMRIGHT', t[4], 'TOPRIGHT', 2, 1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial18', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[4], 'TOPRIGHT', 1, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[4], 'BOTTOMRIGHT', 2, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial19', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[4], 'BOTTOMLEFT', -2, -1)
+			tex:SetPoint('BOTTOMRIGHT', t[4], 'BOTTOMRIGHT', 1, -2)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial20', 'BORDER')
+			tex:SetPoint('TOPLEFT', t[4], 'TOPLEFT', -2, 1)
+			tex:SetPoint('BOTTOMRIGHT', t[4], 'BOTTOMLEFT', -1, -1)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+
+			tex = self.Border:CreateTexture('TexPMPlayerSpecial21', 'BORDER')
+			tex:SetPoint('TOP', self.Health, 'TOP', 0, 2)
+			tex:SetPoint('BOTTOMRIGHT', self.Health, 'TOPRIGHT', 2, 1)
+			tex:SetPoint('LEFT', t[4], 'RIGHT', 2, 0)
+			tex:SetTexture(settings.tex.solid)
+			table.insert(self.Border.tex, tex)
+		end
+
+		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+floor(cfg.specialPowerHeight/2)+1)
+		self.Totems = t
+		self.Totems.Override = core.TotemOverride
 	end
 
 	-- ***** VENGEANCE ****************************************************************************
-	if ( class == 'WARRIOR' or class == 'PALADIN' or class == 'DEATHKNIGHT' or class == 'DRUID' ) then
+	if ( (class == 'WARRIOR' or class == 'PALADIN' or class == 'DEATHKNIGHT' or class == 'DRUID') and cfg.showVengeance ) then
 		self.Vengeance = CreateFrame('StatusBar', nil, self)
 		self.Vengeance:SetFrameLevel(24)
 		self.Vengeance:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, 1)
@@ -720,12 +947,8 @@ local function createPlayer(self)
 		self.Vengeance:SetValue(0)
 		self.Vengeance:RegisterEvent('UNIT_AURA')
 		self.Vengeance:RegisterEvent('UNIT_MAXHEALTH')
-		self.Vengeance:RegisterEvent('PLAYER_ENTERING_WORLD')
 		self.Vengeance:RegisterEvent('UNIT_LEVEL')
-		self.Vengeance:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-		self.Vengeance:RegisterEvent('PLAYER_TALENT_UPDATE')
-		self.Vengeance:RegisterEvent('PLAYER_LOGIN')
-		self.Vengeance:RegisterEvent('PLAYER_ALIVE')
+		self.Vengeance:RegisterEvent('PLAYER_REGEN_DISABLED')
 		self.Vengeance:SetScript('OnEvent', lib.Vengeance.eventHandler)
 	end
 
@@ -736,8 +959,10 @@ local function createPlayer(self)
 
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
-	-- self.Health.value:Hide()
 	self.Health.PostUpdate = core.UpdateHealth_player
+	if ( cfg.showPowerValue ) then
+		self.Power.PostUpdate = core.UpdatePower_player
+	end
 end
 
 --[[
@@ -750,10 +975,13 @@ local function createTarget(self)
 	core.CreateUnitFrameCastbar(self, cfg.width, cfg.height, cfg.nameplateOffset)
 
 	self.Power = core.CreatePowerbarOffsettedBG(self, cfg.powerOffset, 0, cfg.powerWidth, -cfg.powerWidth)
+	self.Power.value = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
+	self.Power.value:SetJustifyH('LEFT')
+	self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 1, 1)
 
 	-- ***** CASTBAR ******************************************************************************
 	self.Castbar.Text:SetPoint('RIGHT', -20, 0)
-	self.Castbar.Time = lib.CreateFontObject(self.Castbar, 12, settings.fonts[2])
+	self.Castbar.Time = lib.CreateFontObject(self.Castbar, 12, settings.fonts['default'])
 	self.Castbar.Time:SetPoint('BOTTOMRIGHT', -3, 1)
 	self.Castbar.Time:SetTextColor(1, 1, 1)
 	self.Castbar.Time:SetJustifyH('RIGHT')
@@ -811,14 +1039,15 @@ local function createTarget(self)
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
 	self.Health.PostUpdate = core.UpdateHealth_target
+	self.Power.PostUpdate = core.UpdatePower_target
 end
 
 --[[
 
 ]]
-local function createFocus(self, unit)
+local function createFocus(self)
 
-	local cfg = oUF_PhantomMenaceSettings[unit]
+	local cfg = oUF_PhantomMenaceSettings['focus']
 
 	core.CreateUnitFrameCastbar(self, cfg.width, cfg.height, cfg.nameplateOffset)
 
@@ -842,6 +1071,16 @@ local function createFocus(self, unit)
 	self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
 	self.Debuffs.PostCreateIcon = core.PostCreateIcon
 	self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+
+	self.Auras = CreateFrame('Frame', nil, self)
+	self.Auras:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
+	self.Auras:SetPoint('RIGHT', self, 'LEFT', -(9+cfg.powerWidth), 0)
+	self.Auras.size = cfg.height
+	self.Auras['growth-x'] = 'LEFT'
+	self.Auras.initialAnchor = 'RIGHT'
+	self.Auras.spacing = cfg.auraSpacing
+	self.Auras.PostCreateIcon = core.PostCreateIcon
+	self.Auras.CustomFilter = core.FilterSpecialsFocus
 
 	-- ***** BORDER *******************************************************************************
 	do
@@ -999,11 +1238,22 @@ local function createParty(self)
 
 	self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -1, 3)
 
-	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts[2])
+	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
 	self.Name:SetPoint('BOTTOMLEFT', self, 'BOTTOMLEFT', 1, 4)
 	self.Name:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -1, 4)
 
 	self.Power = core.CreatePowerbarOffsettedFG(self, 2*cfg.powerWidth, 0, -cfg.powerOffset, -cfg.powerWidth)
+
+	self.Auras = CreateFrame('Frame', nil, self)
+	self.Auras:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
+	self.Auras:SetPoint('RIGHT', self, 'LEFT', -(9+cfg.powerWidth), 0)
+	self.Auras.size = cfg.height
+	self.Auras['growth-x'] = 'LEFT'
+	self.Auras.initialAnchor = 'RIGHT'
+	self.Auras.spacing = cfg.auraSpacing
+	self.Auras.PostCreateIcon = core.PostCreateIcon
+	self.Auras.CustomFilter = core.FilterSpecialsParty
+
 	-- ***** BORDER ***************************************************************************
 	do
 		-- Health Border
@@ -1069,10 +1319,22 @@ local function createParty(self)
 	self.RaidIcon = CreateFrame('Frame', nil, self)
 	self.RaidIcon.Override = core.UpdateName
 
+	-- ***** LFD ROLE *****************************************************************************
+	self.LFDRole = self.Border:CreateTexture(nil, 'OVERLAY')
+	self.LFDRole:SetSize(16, 16)
+	self.LFDRole:SetPoint('TOPLEFT', self, 'TOPLEFT', 1, -1)
+	self.LFDRole.Override = core.LFDOverride
+
 	-- ***** READY CHECK **************************************************************************
 	self.ReadyCheck = self.Border:CreateTexture(nil, 'OVERLAY')
 	self.ReadyCheck:SetSize(16, 16)
 	self.ReadyCheck:SetPoint('LEFT', self, 'LEFT', 1, 0)
+
+	-- ***** RANGE ********************************************************************************
+	self.Range = {
+		['insideAlpha'] = 1.0,
+		['outsideAlpha'] = 0.4
+	}
 
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
@@ -1100,7 +1362,7 @@ local function createRaid(self)
 
 	self.Power = core.CreatePowerbarOffsettedFG(self, 2*cfg.powerWidth, 0, -cfg.powerOffset, -cfg.powerWidth)
 
-	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts[2])
+	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
 	self.Name:SetPoint('BOTTOMLEFT', self, 'BOTTOMLEFT', 1, 4)
 	self.Name:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -1, 4)
 
@@ -1174,6 +1436,12 @@ local function createRaid(self)
 	self.ReadyCheck:SetSize(16, 16)
 	self.ReadyCheck:SetPoint('BOTTOMLEFT', self, 'BOTTOMLEFT', 0, 0)
 
+	-- ***** RANGE ********************************************************************************
+	self.Range = {
+		['insideAlpha'] = 1.0,
+		['outsideAlpha'] = 0.4
+	}
+
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
 	self:SetScript('OnEnter', UnitFrame_OnEnter)
@@ -1192,19 +1460,13 @@ end
 ]]
 local function createMT(self)
 
-	local target = self:GetAttribute('unitsuffix') and 'target' or false
-	local cfg
-	if ( target ) then
-		cfg	= oUF_PhantomMenaceSettings['partytarget']
-	else
-		cfg	= oUF_PhantomMenaceSettings['maintank']
-	end
+	local cfg = oUF_PhantomMenaceSettings['maintank']
 
 	core.CreateUnitFrame(self, cfg.width, cfg.height)
 
 	self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -1, 3)
 
-	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts[2])
+	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
 	self.Name:SetPoint('BOTTOMLEFT', self, 'BOTTOMLEFT', 1, 3)
 	self.Name:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -1, 3)
 
@@ -1240,6 +1502,12 @@ local function createMT(self)
 	self.RaidIcon = CreateFrame('Frame', nil, self)
 	self.RaidIcon.Override = core.UpdateName
 
+	-- ***** RANGE ********************************************************************************
+	self.Range = {
+		['insideAlpha'] = 1.0,
+		['outsideAlpha'] = 0.4
+	}
+
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
 	self:SetScript('OnEnter', UnitFrame_OnEnter)
@@ -1264,7 +1532,7 @@ local function createGroupTarget(self)
 
 	self.Health.value:Hide()
 
-	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts[2])
+	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
 	self.Name:SetPoint('BOTTOMLEFT', self, 'BOTTOMLEFT', 1, 3)
 	self.Name:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -1, 3)
 
@@ -1305,6 +1573,114 @@ local function createGroupTarget(self)
 	self.UNIT_NAME_UPDATE = core.UpdateName
 end
 
+--[[
+
+]]
+local function createBoss(self)
+
+	local cfg = oUF_PhantomMenaceSettings['boss']
+
+	core.CreateUnitFrame(self, cfg.width, cfg.height)
+
+	self.Health.value:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', -1, 3)
+
+	self.Power = core.CreatePowerbarOffsettedFG(self, 2*cfg.powerWidth, 0, -cfg.powerOffset, -cfg.powerWidth)
+
+	self.Name = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
+	self.Name:SetJustifyH('LEFT')
+	self.Name:SetPoint('BOTTOMLEFT', self, 'BOTTOMLEFT', 1, 3)
+	self.Name:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -40, 3)
+
+	-- ***** BUFFS/DEBUFFS ************************************************************************
+	self.Buffs = CreateFrame('Frame', nil, self)
+	self.Buffs:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
+	self.Buffs:SetPoint('RIGHT', self, 'LEFT', -9, 0)
+	self.Buffs.size = cfg.height
+	self.Buffs.spacing = cfg.auraSpacing
+	self.Buffs.num = 3
+	self.Buffs['growth-x'] = 'LEFT'
+	self.Buffs.initialAnchor = 'RIGHT'
+	self.Buffs.PostCreateIcon = core.PostCreateIcon
+
+	self.Debuffs = CreateFrame('Frame', nil, self)
+	self.Debuffs.size = floor((cfg.width-6*cfg.auraSpacing)/7)
+	self.Debuffs:SetSize((7*(self.Debuffs.size+cfg.auraSpacing))-cfg.auraSpacing, self.Debuffs.size)
+	self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
+	self.Debuffs.spacing = cfg.auraSpacing
+	self.Debuffs.num = 7
+	self.Debuffs.PostCreateIcon = core.PostCreateIcon
+	self.Debuffs.CustomFilter = oUF_BuffFilter_PvEBossDebuffs
+
+	-- ***** BORDER *******************************************************************************
+	do
+		-- Health Border
+		local tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Health, 'TOPLEFT', -2, 2)
+		tex:SetPoint('BOTTOMRIGHT', self.Health, 'TOPRIGHT', 2, 1)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Health, 'TOPRIGHT', 1, 1)
+		tex:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', 2, -2)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Health, 'BOTTOMLEFT', -2, -1)
+		tex:SetPoint('BOTTOM', self.Health, 'BOTTOM', 0, -2)
+		tex:SetPoint('RIGHT', self.Power, 'LEFT', -2, 0)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOP', self.Health, 'BOTTOM', 0, -1)
+		tex:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMRIGHT', 1, -2)
+		tex:SetPoint('LEFT', self.Power, 'RIGHT', 2, 0)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Health, 'TOPLEFT', -2, 1)
+		tex:SetPoint('BOTTOMRIGHT', self.Health, 'BOTTOMLEFT', -1, -1)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		-- Power Border
+		local tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Power, 'TOPLEFT', -2, 2)
+		tex:SetPoint('BOTTOMRIGHT', self.Power, 'TOPRIGHT', 2, 1)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Power, 'TOPRIGHT', 1, 1)
+		tex:SetPoint('BOTTOMRIGHT', self.Power, 'BOTTOMRIGHT', 2, -2)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Power, 'BOTTOMLEFT', -2, -1)
+		tex:SetPoint('BOTTOMRIGHT', self.Power, 'BOTTOMRIGHT', 1, -2)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+
+		tex = self.Border:CreateTexture(nil, 'BORDER')
+		tex:SetPoint('TOPLEFT', self.Power, 'TOPLEFT', -2, 1)
+		tex:SetPoint('BOTTOMRIGHT', self.Power, 'BOTTOMLEFT', -1, -1)
+		tex:SetTexture(settings.tex.solid)
+		table.insert(self.Border.tex, tex)
+	end
+
+	-- ***** RAID ICON ****************************************************************************
+	self.RaidIcon = CreateFrame('Frame', nil, self)
+	self.RaidIcon.Override = core.UpdateName
+
+	-- ***** ENGINES ******************************************************************************
+	self.Health.PostUpdate = core.UpdateHealth_percent
+	self.UNIT_NAME_UPDATE = core.UpdateName
+end
+
 
 -- ************************************************************************************************
 PhantomMenace:RegisterEvent('ADDON_LOADED')
@@ -1324,6 +1700,7 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	oUF:RegisterStyle('oUF_PhantomMenace_mt', createMT)
 	oUF:RegisterStyle('oUF_PhantomMenace_targettarget', createTargetTarget)
 	oUF:RegisterStyle('oUF_PhantomMenace_grouptarget', createGroupTarget)
+	oUF:RegisterStyle('oUF_PhantomMenace_boss', createBoss)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_player')
 	oUF:Spawn('player', 'oUF_PhantomMenace_player'):SetPoint('RIGHT', UIParent, 'CENTER', -100, -200)
@@ -1337,7 +1714,7 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	oUF:Spawn('target', 'oUF_PhantomMenace_target'):SetPoint('LEFT', UIParent, 'CENTER', 100, -200)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_focus')
-	oUF:Spawn('focus', 'oUF_PhantomMenace_focus'):SetPoint('LEFT', UIParent, 'CENTER', 300, 0)
+	oUF:Spawn('focus', 'oUF_PhantomMenace_focus'):SetPoint('LEFT', UIParent, 'CENTER', 300, 0)	
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_targettarget')
 	oUF:Spawn('targettarget', 'oUF_PhantomMenace_targettarget'):SetPoint('LEFT', 'oUF_PhantomMenace_target', 'RIGHT', 15, 0)
@@ -1345,7 +1722,7 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_party')
 	oUF:SpawnHeader('oUF_PhantomMenace_party', nil, 
-		'custom [@raid1,exists] show; [@raid6,exists] hide; [group:party,nogroup:raid] show; hide',
+		'custom [@raid6,exists] hide; [@raid1,exists] show; [group:party,nogroup:raid] show; hide',
 		'showPlayer', oUF_PhantomMenaceSettings.configuration.playerInGroup,
 		'showParty', true,
 		'showSolo', false,
@@ -1440,6 +1817,13 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 			self:SetAttribute('unitsuffix', 'target')
 		]], oUF_PhantomMenaceSettings.grouptarget.width, oUF_PhantomMenaceSettings.grouptarget.height)
 	):SetPoint('TOPLEFT', 'oUF_PhantomMenace_mt', 'TOPRIGHT', 10, 0)
+
+	oUF:SetActiveStyle('oUF_PhantomMenace_boss')
+	oUF:Spawn('boss1', 'oUF_PhantomMenace_boss1'):SetPoint('CENTER', UIParent, 'CENTER', 300, 0)
+	oUF:Spawn('boss2', 'oUF_PhantomMenace_boss2'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss1', 'TOP', 0, 30)
+	oUF:Spawn('boss3', 'oUF_PhantomMenace_boss3'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss2', 'TOP', 0, 30)
+	oUF:Spawn('boss4', 'oUF_PhantomMenace_boss4'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss3', 'TOP', 0, 30)
+	oUF:Spawn('boss5', 'oUF_PhantomMenace_boss5'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss4', 'TOP', 0, 30)
 
 	--[[
 		Remove all focus stuff from menus

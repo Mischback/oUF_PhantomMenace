@@ -18,6 +18,20 @@ lib.debugging = function(text)
 	DEFAULT_CHAT_FRAME:AddMessage('|cffffd700oUF_PhantomMenace:|r |cffeeeeee'..text..'|r')
 end
 
+--[[ Is a value in a table?
+	BOOL in_array(MIXED e, TABLE t)
+]]
+lib.in_array = function(e, t)
+	-- lib.debugging('entering in_array() with spellID='..e)
+	for _,v in pairs(t) do
+		if ( v == e ) then
+			-- lib.debugging('in_array(): v == e: '..v..'/'..e)
+			return true
+		end
+	end
+	return false
+end
+
 --[[ Creates a font-object
 	FONT OBJECT CreateFontObject(FRAME parent, INT size, STRING font)
 ]]
@@ -184,16 +198,22 @@ lib.Vengeance.updateVengeance = function(self, event, unit)
 	if not unit or (unit and unit ~= 'player') then return end
 
 	local name = UnitBuff('player', lib.Vengeance.venAura)
-	if ( not name ) then return end
+	if ( not name ) then 
+		self:SetValue(0)
+		return 
+	end
 
 	lib.Vengeance.venTT:ClearLines()
 	lib.Vengeance.venTT:SetUnitBuff('player', lib.Vengeance.venAura)
 
-	local numVenTTRegions = lib.Vengeance.venTT:GetNumRegions()
-	local value = nil
-	if ( numVenTTRegions ) then
-		value = lib.Vengeance.getVengeanceValue(lib.Vengeance.venTT:GetRegions())
-	end
+	local tooltiptext = _G[lib.Vengeance.venTT:GetName()..'TextLeft2']
+	local value = (tooltiptext:GetText() and tonumber(string.match(tostring(tooltiptext:GetText()), '%d+'))) or -1
+
+	-- local numVenTTRegions = lib.Vengeance.venTT:GetNumRegions()
+	-- local value = nil
+	-- if ( numVenTTRegions ) then
+		-- value = lib.Vengeance.getVengeanceValue(lib.Vengeance.venTT:GetRegions())
+	-- end
 
 	self:SetValue(value or 0)
 end
@@ -227,6 +247,7 @@ lib.Vengeance.setUpBar = function(self)
 	local _, stamina = UnitStat('player', 3)
 	self:SetMinMaxValues(0, (0.1 * (maxHealth - 15*stamina) + stamina))
 	self:SetValue(0)
+	-- lib.debugging('max='..(0.1 * (maxHealth - 15*stamina) + stamina))
 	lib.Vengeance.updateVengeance(self, 'UNIT_AURA', 'player')
 end
 

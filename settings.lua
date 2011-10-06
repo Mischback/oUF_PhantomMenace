@@ -8,10 +8,7 @@ local settings = {}
 -- ************************************************************************************************
 
 settings.fonts = {
-	[1] = [[Interface\AddOns\oUF_PhantomMenace\media\BIRTH_OF_A_HERO.ttf]],
-	[2] = [[Interface\AddOns\oUF_PhantomMenace\media\Catenary-Stamp.ttf]],
-	[3] = [[Interface\AddOns\oUF_PhantomMenace\media\EuropeUnderground_worn.ttf]],
-	-- [1] = [[Interface\AddOns\oUF_PhantomMenace\media]],
+	['default'] = [[Interface\AddOns\oUF_PhantomMenace\media\Catenary-Stamp.ttf]],
 }
 
 settings.tex = {
@@ -19,6 +16,11 @@ settings.tex = {
 	['solid'] = [[Interface\AddOns\oUF_PhantomMenace\media\solid.tga]],
 	['gloss'] = [[Interface\AddOns\oUF_PhantomMenace\media\gloss.tga]],
 	['overlay'] = [[Interface\AddOns\oUF_PhantomMenace\media\overlay.tga]],
+	['role'] = {
+		['tank'] = [[Interface\AddOns\oUF_PhantomMenace\media\role_tank.tga]],
+		['heal'] = [[Interface\AddOns\oUF_PhantomMenace\media\role_heal.tga]],
+		['damage'] = [[Interface\AddOns\oUF_PhantomMenace\media\role_dd.tga]],
+	}
 }
 
 settings.colors = setmetatable({
@@ -27,18 +29,64 @@ settings.colors = setmetatable({
 		{ __index = oUF.colors.class }),
 
 		runes = setmetatable({
-			{0.77, 0.12, 0.23},
-			{0, 0.5, 0},
-			{0, 0.76, 1},
-			{0.78, 0, 0.78}
+			{0.77, 0.12, 0.23},		-- Blood
+			{0, 0.5, 0},			-- Frost
+			{0, 0.76, 1},			-- Unholy
+			{0.78, 0, 0.78}			-- Death
 		},
 		{ __index = oUF.colors.runes })
 	},
 	{ __index = oUF.colors })
 
+settings.SpecialAurasFocus = {
+	-- Mage
+	[118] = true, 		-- Verwandlung (Schaf)
+	[28272] = true, 	-- Verwandlung: Schwein
+	-- Rogue
+	[408] = true, 		-- Nierenhieb
+	-- Hunter
+	[3355] = true, 		-- Eiskältefalle
+	-- Paladin
+	[20066] = true, 	-- Buße
+	[53563] = true, 	-- Flamme des Glaubens
+	-- Priest
+	[6788] = true, 		-- Geschwächte Seele
+	[139] = true, 		-- Erneuerung
+	[8362] = true, 		-- Erneuerung
+	[11640] = true, 	-- Erneuerung
+	[25058] = true, 	-- Erneuerung
+	[34423] = true, 	-- Erneuerung
+	[57777] = true, 	-- Erneuerung
+	-- Shaman
+	[974] = true, 		-- Erdschild
+	[57802] = true, 	-- Erdschild
+	[69926] = true, 	-- Erdschild
+	[79927] = true, 	-- Erdschild
+}
+
+settings.SpecialAurasParty = {
+	-- Mage
+		-- Magie fokussieren?
+	-- Rogue
+		-- Schurkenhandel!
+	-- Hunter
+		-- Irreführung!
+	-- Paladin
+	[53563] = true, 	-- Flamme des Glaubens
+	-- Priest
+	[6788] = true, 		-- Geschwächte Seele
+	-- Shaman
+	[974] = true, 		-- Erdschild
+	[57802] = true, 	-- Erdschild
+	[69926] = true, 	-- Erdschild
+	[79927] = true, 	-- Erdschild
+	-- Warrior
+	[50720] = true, 	-- Wachsamkeit
+}
+
 settings.init = {
 	['configuration'] = {
-		['healerMode'] = false,
+		['healerMode'] = true,
 		['playerInGroup'] = true,
 		['strings'] = {
 			['off'] = 'off',
@@ -89,8 +137,12 @@ settings.init = {
 		['powerOffset'] = 40,
 		['specialPowerHeight'] = 3,
 		['specialPowerOffset'] = 18,
+		['showPowerValue'] = true,
+		['showAura'] = true,
 		['auraSize'] = 18,
 		['auraSpacing'] = 9,
+		['showSpecialPower'] = true,
+		['showVengeance'] = true,
 	},
 	['target'] = {
 		['width'] = 180,
@@ -131,6 +183,7 @@ settings.init = {
 		['powerOffset'] = 35,
 		['xOffset'] = 8,
 		['yOffset'] = 12,
+		['auraSpacing'] = 9,
 	},
 	['raid'] = {
 		['width'] = 80,
@@ -143,6 +196,14 @@ settings.init = {
 	['maintank'] = {
 		['width'] = 100,
 		['height'] = 20,
+	},
+	['boss'] = {
+		['width'] = 150, 
+		['height'] = 20, 
+		['powerWidth'] = 3,
+		['powerOffset'] = 25,
+		['buffSize'] = 18,
+		['auraSpacing'] = 9,
 	},
 	['grouptarget'] = {
 		['width'] = 80,
