@@ -1,0 +1,15 @@
+## Interface: 40200
+## Author: Mischback
+## X-URI: http://gihub.com/Mischback
+## Title: oUF_|cff0099ffPhantomMenace|r
+## Version: BETA 0.9
+## Notes: Provides unitframes in the PhantomMenace-style. Needs oUF-core!
+## X-Category: UnitFrame
+## DefaultState: Disabled
+## RequiredDeps: oUF
+## OptionalDeps: oUF_BuffFilter
+
+settings.lua
+lib.lua
+core.lua
+layout.lua
