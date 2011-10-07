@@ -1,5 +1,24 @@
 --[[ CORE
-	Contains the core-functions
+	@file:			core.lua
+	@file-version:	1.0
+	@project:		oUF_PhantomMenace
+	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
+	@author:		Mischback
+
+	@project-description:
+		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
+			@github:		https://github.com/haste/oUF
+		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
+		fit my very own needs. Please understand, that I will not put any effort in "adding" 
+		anything for you, "fix" things for you or make any changes to this.
+		However, please feel free to send me feature requests, I will consider them and _possibly_
+		will add what you requested.
+		Anyway: When you read this, you have already downloaded the layout and view the code. Feel 
+		free to modify it to your own needs.
+
+	@file-description:
+		This file (core.lua) contains necessary functions to build the PhantomMenace-look'n'feel
 ]]
 
 local ADDON_NAME, ns = ...
@@ -12,8 +31,14 @@ local lib = ns.lib
 local core = {}
 -- ************************************************************************************************
 
---[[
+--[[ Creates a BASIC unitframe, meaning all unitframes will rely on this function!
+	VOID CreateUnitFrame(FRAME self, INT width, INT height)
 
+	Features:
+		* Health-bar with heal-prediction (using oUF's internal element) and a health-value
+		* Threat-highlighting (overriding oUF's internal function, we color the border's textures)
+		* provides the Overlay-element (which is currently unused)
+		* Unit-menu
 ]]
 core.CreateUnitFrame = function(self, width, height)
 
@@ -97,8 +122,16 @@ core.CreateUnitFrame = function(self, width, height)
 	self:SetAttribute('*type2', 'menu')
 end
 
---[[
+--[[ Creates a unitframe with NAMEPLATE on it!
+	VOID CreateUnitFrameName(FRAME self, INT width, INT height, INT nameOff)
 
+	This is merely our 'default' frame-appearance.
+
+	Features:
+		* ALL features from CreateUnitFrame()
+		* Nameplate including name-string
+		* RaidIcon
+		* builds the borders for this type of frame
 ]]
 core.CreateUnitFrameName = function(self, width, height, nameOff)
 
@@ -200,8 +233,12 @@ core.CreateUnitFrameName = function(self, width, height, nameOff)
 
 end
 
---[[
+--[[ Creates a unitframe with build-in CASTBAR!
+	VOID CreateUnitFrameCastbar(FRAME self, INT width, INT height, INT nameOff)
 
+	Features:
+		* ALL features from CreateUnitFrameName()
+		* Build-in castbar (overlaps the nameplate)
 ]]
 core.CreateUnitFrameCastbar = function(self, width, height, nameOff)
 	core.CreateUnitFrameName(self, width, height, nameOff)
@@ -232,8 +269,10 @@ end
 -- ***** POWER ************************************************************************************
 -- ************************************************************************************************
 
---[[
+--[[ Generic function to create the offsetted Powerbar-look. SHOULD NOT BE CALLED DIRECTLY!
+	STATUSBAR CreatePowerBarOffsetted(FRAME self, INT leftX, INT leftY, INT rightX, INT rightY)
 
+	Yeah, leftX and leftY are not actually used! I'll keep them...
 ]]
 core.CreatePowerbarOffsetted = function(self, leftX, leftY, rightX, rightY)
 
@@ -258,8 +297,8 @@ core.CreatePowerbarOffsetted = function(self, leftX, leftY, rightX, rightY)
 	return pb
 end
 
---[[
-
+--[[ Creates a power-bar BEHIND the health-bar
+	STATUSBAR CreatePowerbarOffsettedBG(FRAME self, INT leftX, INT leftY, INT rightX, INT rightY)
 ]]
 core.CreatePowerbarOffsettedBG = function(self, leftX, leftY, rightX, rightY)
 
@@ -270,8 +309,8 @@ core.CreatePowerbarOffsettedBG = function(self, leftX, leftY, rightX, rightY)
 	return pb
 end
 
---[[
-
+--[[ Creates a power-bar IN FRONT OF the health-bar
+	STATUSBAR CreatePowerbarOffsettedBG(FRAME self, INT leftX, INT leftY, INT rightX, INT rightY)
 ]]
 core.CreatePowerbarOffsettedFG = function(self, leftX, leftY, rightX, rightY)
 
@@ -301,15 +340,19 @@ core.UpdateName = function(self, event)
 	end
 end
 
---[[
+--[[ This function is necessary, because we hide the health-value on party-targets (and MT-targets)
+	VOID UpdateName_PartyTarget(STATUSBAR health, STRING unit, INT min, INT max)
 
+	Follows the prototype of the PostUpdate-health-function, because this is when we call this!
 ]]
 core.UpdateName_PartyTarget = function(health, unit, min, max)
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
---[[
+--[[ Updates the power-bar of pets, actually it changes its color!
+	VOID PetPowerUpdate(FRAME self, STRING event, STRING unit)
 
+	This is only applied to the player's pet as Power.Override!
 ]]
 core.PetPowerUpdate = function(self, event, unit)
 
@@ -461,8 +504,10 @@ core.LFDOverride = function(self, event)
 	end
 end
 
---[[
+--[[ Highlights non-interruptable spells
+	VOID CheckForInterrupt(STATUSBAR bar, STRING unit)
 
+	I really can't remember, that I have seen this working...
 ]]
 core.CheckForInterrupt = function(bar, unit)
 	if ( bar.interrupt and UnitCanAttack('player', unit) ) then
@@ -472,16 +517,20 @@ core.CheckForInterrupt = function(bar, unit)
 	end
 end
 
---[[
+--[[ Filters special auras on focus-unitframe
+	BOOL FilterSpecialsFocus(..., INT spellID)
 
+	TODO: Hm, yeah, it is in this layout! But should it be here or in oUF_BuffFilter?
 ]]
 core.FilterSpecialsFocus = function(icons, unit, icon, name, rank, texture, count, dtype, duration, timeLeft, caster, isStealable, shouldConsolidate, spellID)
 	if ( caster ~= 'player' ) then return false end
 	return lib.in_array(spellID, settings.SpecialAurasFocus)
 end
 
---[[
+--[[ Filters special auras on party-unitframe
+	BOOL FilterSpecialsParty(..., INT spellID)
 
+	TODO: Hm, yeah, it is in this layout! But should it be here or in oUF_BuffFilter?
 ]]
 core.FilterSpecialsParty = function(icons, unit, icon, name, rank, texture, count, dtype, duration, timeLeft, caster, isStealable, shouldConsolidate, spellID)
 	if ( caster ~= 'player' ) then return false end
@@ -492,8 +541,10 @@ end
 -- ***** HEALTH UPDATES ***************************************************************************
 -- ************************************************************************************************
 
---[[
+--[[ Shows the health-value as %-value
+	VOID UpdateHealth_percent(STATUSBAR health, STRING unit, INT min, INT max)
 
+	Shows the absolute value, when at max health (100%), percent-value otherwhise
 ]]
 core.UpdateHealth_percent = function(health, unit, min, max)
 	if ( min ~= max ) then
@@ -504,8 +555,10 @@ core.UpdateHealth_percent = function(health, unit, min, max)
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
---[[
+--[[ Shows the health-value as deficit from full health
+	VOID UpdateHealth_deficit(STATUSBAR health, STRING unit, INT min, INT max)
 
+	This is, what I call the healer-mode!
 ]]
 core.UpdateHealth_deficit = function(health, unit, min, max)
 	if ( min ~= max ) then
@@ -516,8 +569,10 @@ core.UpdateHealth_deficit = function(health, unit, min, max)
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
---[[
+--[[ Specific function for the player's health-value
+	VOID UpdateHealth_player(STATUSBAR health, STRING unit, INT min, INT max)
 
+	Shows deficit AND current value.
 ]]
 core.UpdateHealth_player = function(health, unit, min, max)
 	if ( min ~= max ) then
@@ -527,8 +582,10 @@ core.UpdateHealth_player = function(health, unit, min, max)
 	end
 end
 
---[[
+--[[ Specific function for the target's health-value
+	VOID UpdateHealth_target(STATUSBAR health, STRING unit, INT min, INT max)
 
+	Shows current AND percent value.
 ]]
 core.UpdateHealth_target = function(health, unit, min, max)
 	if ( min ~= max ) then
@@ -539,8 +596,11 @@ core.UpdateHealth_target = function(health, unit, min, max)
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
---[[
+--[[ Specific function for the player's pet's health-value
+	VOID UpdateHealth_pet(STATUSBAR health, STRING unit, INT min, INT max)
 
+	Basically works just as UpdateHealth_percent(), but don't triggers the update of 
+	the unit's name, since our pet-frame doesn't display the pet's name
 ]]
 core.UpdateHealth_pet = function(health, unit, min, max)
 	if ( min ~= max ) then
@@ -550,8 +610,11 @@ core.UpdateHealth_pet = function(health, unit, min, max)
 	end
 end
 
---[[
+--[[ Switches display between health-value (in percent) and name
+	VOID UpdateHealth_raid(STATUSBAR health, STRING unit, INT min, INT max)
 
+	The function is specifically tailored for raid-frames, it also includes 'offline' and 'dead'
+	strings.
 ]]
 core.UpdateHealth_raid = function(health, unit, min, max)
 	if ( not UnitIsConnected(unit) ) then
@@ -578,8 +641,11 @@ core.UpdateHealth_raid = function(health, unit, min, max)
 	health:GetParent():UNIT_NAME_UPDATE(event, unit)
 end
 
---[[
+--[[ Switches display between health-value (as deficit) and name
+	VOID UpdateHealth_raid(STATUSBAR health, STRING unit, INT min, INT max)
 
+	The function is specifically tailored for raid-frames, it also includes 'offline' and 'dead'
+	strings.
 ]]
 core.UpdateHealth_raidHealer = function(health, unit, min, max)
 	if ( not UnitIsConnected(unit) ) then
@@ -611,8 +677,14 @@ end
 -- ***** POWER UPDATES ****************************************************************************
 -- ************************************************************************************************
 
---[[
+--[[ Updates the power-value on the player-frame
+	VOID UpdatePower_player(STATUSBAR power, STRING unit, INT min, INT max)
 
+	We want to handle the display of power slightly different, based on the class-mechanics in use.
+	So, basically it works like this:
+		Warrior, Deathknights and Druids (Bear) show nothing when there's no rage, show value when there is rage
+		Hunter, Rogue, Druids (Cat) show nothing, when they are at full focus, show value when not
+		The rest (mana-users): Show value and % when not at max
 ]]
 core.UpdatePower_player = function(power, unit, min, max)
 
@@ -656,8 +728,8 @@ core.UpdatePower_player = function(power, unit, min, max)
 end
 
 
---[[
-
+--[[ Updates the power-value on the target-frame
+	VOID UpdatePower_target(STATUSBAR power, STRING unit, INT min, INT max)
 ]]
 core.UpdatePower_target = function(power, unit, min, max)
 	if ( min > 0 ) then
@@ -672,8 +744,11 @@ end
 -- ***** AURA STUFF *******************************************************************************
 -- ************************************************************************************************
 
---[[
+--[[ Styles the Aura-/Buff-/Debuff-icons
+	VOID PostCreateIcon(FRAME self, BUTTON b)
 
+	Modifies the tex-coords of the icon to get rid of the ugly Blizzard-borders and creates 
+	the PhantomMenace-style borders.
 ]]
 core.PostCreateIcon = function(self, b)
 

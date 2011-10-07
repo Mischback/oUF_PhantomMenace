@@ -1,5 +1,24 @@
 --[[ LIBRARY
-	Contains library-functions
+	@file:			lib.lua
+	@file-version:	1.0
+	@project:		oUF_PhantomMenace
+	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
+	@author:		Mischback
+
+	@project-description:
+		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
+			@github:		https://github.com/haste/oUF
+		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
+		fit my very own needs. Please understand, that I will not put any effort in "adding" 
+		anything for you, "fix" things for you or make any changes to this.
+		However, please feel free to send me feature requests, I will consider them and _possibly_
+		will add what you requested.
+		Anyway: When you read this, you have already downloaded the layout and view the code. Feel 
+		free to modify it to your own needs.
+
+	@file-description:
+		This file (lib.lua) contains 
 ]]
 
 local ADDON_NAME, ns = ...
@@ -23,13 +42,14 @@ end
 ]]
 lib.in_array = function(e, t)
 	-- lib.debugging('entering in_array() with spellID='..e)
-	for _,v in pairs(t) do
-		if ( v == e ) then
-			-- lib.debugging('in_array(): v == e: '..v..'/'..e)
-			return true
-		end
-	end
-	return false
+	-- for _,v in pairs(t) do
+		-- if ( v == e ) then
+			-- -- lib.debugging('in_array(): v == e: '..v..'/'..e)
+			-- return true
+		-- end
+	-- end
+	return t[e]
+	-- return false
 end
 
 --[[ Creates a font-object
@@ -163,7 +183,12 @@ end
 
 
 -- ************************************************************************************************
+-- ***** VENGEANCE ********************************************************************************
+-- ************************************************************************************************
 
+--[[ We are creating the scannable tooltip
+
+]]
 lib.Vengeance = {
 	['venAura'] = GetSpellInfo(93098),
 	['venTT'] = CreateFrame('GameTooltip', 'VengeanceTooltip', UIParent, 'GameTooltipTemplate')
@@ -171,28 +196,8 @@ lib.Vengeance = {
 lib.Vengeance.venTT:SetOwner(UIParent, 'ANCHOR_NONE')
 
 
---[[
-
-]]
-lib.Vengeance.getVengeanceValue = function(...)
-	local region, value, i
-	local text = ''
-	for i = 1, select('#', ...) do
-		region = select(i, ...)
-		if ( region and region:GetObjectType() == 'FontString' and region:GetText() ) then
-			text = text..region:GetText()
-			value = tonumber(string.match(region:GetText(),"%d+"))
-			if value then
-				return value
-			end
-		end
-	end
-	lib.debugging('DEBUG: no value found!')
-	return nil
-end
-
---[[
-
+--[[ Scans the tooltip for the vengeance-amount and updates the vengeance-bar
+	VOID updateVengeance(FRAME self, STRING event, STRING unit)
 ]]
 lib.Vengeance.updateVengeance = function(self, event, unit)
 	if not unit or (unit and unit ~= 'player') then return end
@@ -209,17 +214,11 @@ lib.Vengeance.updateVengeance = function(self, event, unit)
 	local tooltiptext = _G[lib.Vengeance.venTT:GetName()..'TextLeft2']
 	local value = (tooltiptext:GetText() and tonumber(string.match(tostring(tooltiptext:GetText()), '%d+'))) or -1
 
-	-- local numVenTTRegions = lib.Vengeance.venTT:GetNumRegions()
-	-- local value = nil
-	-- if ( numVenTTRegions ) then
-		-- value = lib.Vengeance.getVengeanceValue(lib.Vengeance.venTT:GetRegions())
-	-- end
-
 	self:SetValue(value or 0)
 end
 
---[[
-
+--[[ Checks, if the unit is a tank
+	BOOL checkSpec()
 ]]
 lib.Vengeance.checkSpec = function()
 	local isTank
@@ -238,8 +237,8 @@ lib.Vengeance.checkSpec = function()
 	return isTank
 end
 
---[[
-
+--[[ Sets up the bar, settings min/max values
+	VOID setUpBar(FRAME self)
 ]]
 lib.Vengeance.setUpBar = function(self)
 	if ( not lib.Vengeance.checkSpec ) then return end
@@ -251,8 +250,8 @@ lib.Vengeance.setUpBar = function(self)
 	lib.Vengeance.updateVengeance(self, 'UNIT_AURA', 'player')
 end
 
---[[
-
+--[[ Handles all events of the vengeance-bar
+	VOID eventHandler(FRAME self, STRING event, STRING unit)
 ]]
 lib.Vengeance.eventHandler = function(self, event, unit)
 	if ( event == 'UNIT_AURA' ) then

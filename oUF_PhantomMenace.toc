@@ -1,9 +1,9 @@
 ## Interface: 40200
 ## Author: Mischback
-## X-URI: http://gihub.com/Mischback
+## X-URI: https://github.com/Mischback/oUF_PhantomMenace
 ## Title: oUF_|cff0099ffPhantomMenace|r
-## Version: BETA 0.9
-## Notes: Provides unitframes in the PhantomMenace-style. Needs oUF-core!
+## Version: 1.0
+## Notes: Provides unitframes in the PhantomMenace-style.
 ## X-Category: UnitFrame
 ## DefaultState: Disabled
 ## RequiredDeps: oUF

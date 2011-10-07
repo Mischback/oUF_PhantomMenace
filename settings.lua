@@ -1,5 +1,25 @@
 --[[ SETTINGS
-	Contains the addons settings
+	@file:			settings.lua
+	@file-version:	1.0
+	@project:		oUF_PhantomMenace
+	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
+	@author:		Mischback
+
+	@project-description:
+		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
+			@github:		https://github.com/haste/oUF
+		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
+		fit my very own needs. Please understand, that I will not put any effort in "adding" 
+		anything for you, "fix" things for you or make any changes to this.
+		However, please feel free to send me feature requests, I will consider them and _possibly_
+		will add what you requested.
+		Anyway: When you read this, you have already downloaded the layout and view the code. Feel 
+		free to modify it to your own needs.
+
+	@file-description:
+		This file (layout.lua) contains all settings, including the defaults for the saved
+		variables.
 ]]
 
 local ADDON_NAME, ns = ...
@@ -45,12 +65,13 @@ settings.SpecialAurasFocus = {
 	-- Rogue
 	[408] = true, 		-- Nierenhieb
 	-- Hunter
-	[3355] = true, 		-- Eisk‰ltefalle
+	[3355] = true, 		-- Eisk√§ltefalle
+	[34477] = true, 	-- Irref√ºhrung!
 	-- Paladin
-	[20066] = true, 	-- Buﬂe
+	[20066] = true, 	-- Bu√üe
 	[53563] = true, 	-- Flamme des Glaubens
 	-- Priest
-	[6788] = true, 		-- Geschw‰chte Seele
+	[6788] = true, 		-- Geschw√§chte Seele
 	[139] = true, 		-- Erneuerung
 	[8362] = true, 		-- Erneuerung
 	[11640] = true, 	-- Erneuerung
@@ -70,11 +91,11 @@ settings.SpecialAurasParty = {
 	-- Rogue
 		-- Schurkenhandel!
 	-- Hunter
-		-- Irref¸hrung!
+	[34477] = true, 	-- Irref√ºhrung!
 	-- Paladin
 	[53563] = true, 	-- Flamme des Glaubens
 	-- Priest
-	[6788] = true, 		-- Geschw‰chte Seele
+	[6788] = true, 		-- Geschw√§chte Seele
 	-- Shaman
 	[974] = true, 		-- Erdschild
 	[57802] = true, 	-- Erdschild
@@ -150,6 +171,8 @@ settings.init = {
 		['powerWidth'] = 6,
 		['powerOffset'] = 40,
 		['nameplateOffset'] = 18,
+		['showPowerValue'] = true,
+		['showAura'] = true,
 		['auraSize'] = 18,
 		['auraSpacing'] = 9,
 	},
@@ -159,6 +182,7 @@ settings.init = {
 		['powerWidth'] = 5,
 		['powerOffset'] = 25,
 		['nameplateOffset'] = 12,
+		['showAura'] = true,
 		['auraSize'] = 14,
 		['auraSpacing'] = 9,
 	},
@@ -168,6 +192,7 @@ settings.init = {
 		['powerWidth'] = 3,
 		['powerOffset'] = 45,
 		['nameplateOffset'] = 12,
+		['showAura'] = true,
 		['auraSize'] = 14,
 		['auraSpacing'] = 9,
 	},
@@ -183,6 +208,7 @@ settings.init = {
 		['powerOffset'] = 35,
 		['xOffset'] = 8,
 		['yOffset'] = 12,
+		['showAura'] = true,
 		['auraSpacing'] = 9,
 	},
 	['raid'] = {
@@ -203,6 +229,7 @@ settings.init = {
 		['powerWidth'] = 3,
 		['powerOffset'] = 25,
 		['buffSize'] = 18,
+		['showAura'] = true,
 		['auraSpacing'] = 9,
 	},
 	['grouptarget'] = {

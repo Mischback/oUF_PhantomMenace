@@ -1,8 +1,39 @@
 --[[ LAYOUT
-	Contains the layout
+	@file:			layout.lua
+	@file-version:	1.0
+	@project:		oUF_PhantomMenace
+	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
+	@author:		Mischback
+
+	@project-description:
+		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
+			@github:		https://github.com/haste/oUF
+		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
+		fit my very own needs. Please understand, that I will not put any effort in "adding" 
+		anything for you, "fix" things for you or make any changes to this.
+		However, please feel free to send me feature requests, I will consider them and _possibly_
+		will add what you requested.
+		Anyway: When you read this, you have already downloaded the layout and view the code. Feel 
+		free to modify it to your own needs.
+
+	@file-description:
+		This file (layout.lua) contains the styling functions and handles the central parts of the 
+		layout. It is the only file which will directly interact with the oUF-core.
+
+		A brief description on how this stuff works:
+			Once the layout is fully loaded (ADDON_LOADED-event triggers), we will fetch the 
+			saved variables.
+			Once this is completed, we start the "oUF-magic": Registering our various styles, 
+			spawning the frames.
+			Note, that the playerframe does not consist a castbar. The player's castbar is
+			its own style and thus can be moved speratedly by oUF_MovableFrames.
 ]]
 
 local ADDON_NAME, ns = ...
+
+local oUF = ns.oUF or oUF
+assert(oUF, 'oUF_PhantomMenace was unable to locate oUF install...')
 
 -- grab other files from the namespace
 local settings = ns.settings
@@ -132,8 +163,29 @@ local function createPlayerCastbar(self)
 	self.Castbar.gloss = gloss
 end
 
---[[
+--[[ Creates the player frame
+	VOID createPlayer(FRAME self)
 
+	Used for units:
+		* player
+	Registered as oUF-style:
+		* oUF_PhantomMenace_player
+	Inherites:
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* power-bar with (toggleable) value
+		* (toggleable) Buffs/Debuffs
+		* (toggleable) "SpecialPowers"
+			* Druid (Balance): Eclipse-bar
+			* Warlock: Soul Shards
+			* Paladin: Holy Power
+			* Deathknight: Runes
+			* Shaman: Totems
+		* (toggleable) Vengeance-bar (built in) for tank-classes
+		* RaidIcon
 ]]
 local function createPlayer(self)
 
@@ -965,8 +1017,24 @@ local function createPlayer(self)
 	end
 end
 
---[[
+--[[ Creates the target frame
+	VOID createTarget(FRAME self)
 
+	Used for units:
+		* target
+	Registered as oUF-style:
+		* oUF_PhantomMenace_target
+	Inherites:
+		core.CreateUnitFrameCastbar()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* Nameplate including name-string
+		* RaidIcon
+		* built-in castbar with spell-name and time
+		* power-bar with (toggleable) value
+		* (toggleable) Buffs/Debuffs
 ]]
 local function createTarget(self)
 
@@ -975,9 +1043,11 @@ local function createTarget(self)
 	core.CreateUnitFrameCastbar(self, cfg.width, cfg.height, cfg.nameplateOffset)
 
 	self.Power = core.CreatePowerbarOffsettedBG(self, cfg.powerOffset, 0, cfg.powerWidth, -cfg.powerWidth)
-	self.Power.value = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
-	self.Power.value:SetJustifyH('LEFT')
-	self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 1, 1)
+	if ( cfg.showPowerValue ) then
+		self.Power.value = lib.CreateFontObject(self.Text, 12, settings.fonts['default'])
+		self.Power.value:SetJustifyH('LEFT')
+		self.Power.value:SetPoint('BOTTOMLEFT', self.Health, 'BOTTOMLEFT', 1, 1)
+	end
 
 	-- ***** CASTBAR ******************************************************************************
 	self.Castbar.Text:SetPoint('RIGHT', -20, 0)
@@ -987,24 +1057,25 @@ local function createTarget(self)
 	self.Castbar.Time:SetJustifyH('RIGHT')
 
 	-- ***** BUFFS/DEBUFFS ************************************************************************
-	self.Buffs = CreateFrame('Frame', nil, self)
-	self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+7))
-	-- self.Buffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+10)
-	self.Buffs.size = cfg.auraSize
-	self.Buffs.spacing = cfg.auraSpacing
-	self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Buffs.PostCreateIcon = core.PostCreateIcon
-	self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
+	if ( cfg.showAura ) then
+		self.Buffs = CreateFrame('Frame', nil, self)
+		self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+7))
+		self.Buffs.size = cfg.auraSize
+		self.Buffs.spacing = cfg.auraSpacing
+		self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Buffs.PostCreateIcon = core.PostCreateIcon
+		self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
 
-	self.Debuffs = CreateFrame('Frame', nil, self)
-	self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+10)
-	self.Debuffs.size = cfg.auraSize
-	self.Debuffs.spacing = cfg.auraSpacing
-	self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Debuffs.PostCreateIcon = core.PostCreateIcon
-	self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+		self.Debuffs = CreateFrame('Frame', nil, self)
+		self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+10)
+		self.Debuffs.size = cfg.auraSize
+		self.Debuffs.spacing = cfg.auraSpacing
+		self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Debuffs.PostCreateIcon = core.PostCreateIcon
+		self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+	end
 
 	-- ***** BORDER *******************************************************************************
 	do
@@ -1039,11 +1110,30 @@ local function createTarget(self)
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
 	self.Health.PostUpdate = core.UpdateHealth_target
-	self.Power.PostUpdate = core.UpdatePower_target
+	if ( cfg.showPowerValue ) then
+		self.Power.PostUpdate = core.UpdatePower_target
+	end
 end
 
---[[
+--[[ Creates the focus frame
+	VOID createFocus(FRAME self)
 
+	Used for units:
+		* focus
+	Registered as oUF-style:
+		* oUF_PhantomMenace_focus
+	Inherites:
+		core.CreateUnitFrameCastbar()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* Nameplate including name-string
+		* RaidIcon
+		* built-in castbar with spell-name
+		* power-bar
+		* (toggleable) Buffs/Debuffs/Auras
+			* Auras are atm filtered with core.FilterSpecialsFocus()
 ]]
 local function createFocus(self)
 
@@ -1054,33 +1144,35 @@ local function createFocus(self)
 	self.Power = core.CreatePowerbarOffsettedBG(self, -cfg.powerWidth, 0, -cfg.powerOffset, -cfg.powerWidth)
 
 	-- ***** BUFFS/DEBUFFS ************************************************************************
-	self.Buffs = CreateFrame('Frame', nil, self)
-	self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+6))
-	self.Buffs.size = cfg.auraSize
-	self.Buffs.spacing = cfg.auraSpacing
-	self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Buffs.PostCreateIcon = core.PostCreateIcon
-	self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
+	if ( cfg.showAura ) then
+		self.Buffs = CreateFrame('Frame', nil, self)
+		self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+6))
+		self.Buffs.size = cfg.auraSize
+		self.Buffs.spacing = cfg.auraSpacing
+		self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Buffs.PostCreateIcon = core.PostCreateIcon
+		self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
 
-	self.Debuffs = CreateFrame('Frame', nil, self)
-	self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+10)
-	self.Debuffs.size = cfg.auraSize
-	self.Debuffs.spacing = cfg.auraSpacing
-	self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Debuffs.PostCreateIcon = core.PostCreateIcon
-	self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+		self.Debuffs = CreateFrame('Frame', nil, self)
+		self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing+10)
+		self.Debuffs.size = cfg.auraSize
+		self.Debuffs.spacing = cfg.auraSpacing
+		self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Debuffs.PostCreateIcon = core.PostCreateIcon
+		self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
 
-	self.Auras = CreateFrame('Frame', nil, self)
-	self.Auras:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
-	self.Auras:SetPoint('RIGHT', self, 'LEFT', -(9+cfg.powerWidth), 0)
-	self.Auras.size = cfg.height
-	self.Auras['growth-x'] = 'LEFT'
-	self.Auras.initialAnchor = 'RIGHT'
-	self.Auras.spacing = cfg.auraSpacing
-	self.Auras.PostCreateIcon = core.PostCreateIcon
-	self.Auras.CustomFilter = core.FilterSpecialsFocus
+		self.Auras = CreateFrame('Frame', nil, self)
+		self.Auras:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
+		self.Auras:SetPoint('RIGHT', self, 'LEFT', -(9+cfg.powerWidth), 0)
+		self.Auras.size = cfg.height
+		self.Auras['growth-x'] = 'LEFT'
+		self.Auras.initialAnchor = 'RIGHT'
+		self.Auras.spacing = cfg.auraSpacing
+		self.Auras.PostCreateIcon = core.PostCreateIcon
+		self.Auras.CustomFilter = core.FilterSpecialsFocus
+	end
 
 	-- ***** BORDER *******************************************************************************
 	do
@@ -1116,8 +1208,22 @@ local function createFocus(self)
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
 end
 
---[[
+--[[ Creates the target of a target
+	VOID createTargetTarget(FRAME self, STRING unit)
 
+	Used for units:
+		* targettarget
+		* focustarget
+	Registered as oUF-style:
+		* oUF_PhantomMenace_targettarget
+	Inherites:
+		core.CreateUnitFrameName()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* Nameplate including name-string
+		* RaidIcon
 ]]
 local function createTargetTarget(self, unit)
 
@@ -1129,8 +1235,21 @@ local function createTargetTarget(self, unit)
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
 end
 
---[[
+--[[ Creates the player's pet
+	VOID createPet(FRAME self)
 
+	Used for units:
+		* pet
+	Registered as oUF-style:
+		* oUF_PhantomMenace_pet
+	Inherites:
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* power-bar (with player's class color)
+		* (toggleable) Buffs/Debuffs
 ]]
 local function createPet(self)
 
@@ -1142,23 +1261,25 @@ local function createPet(self)
 	self.Power.Override = core.PetPowerUpdate
 
 	-- ***** BUFFS/DEBUFFS ************************************************************************
-	self.Buffs = CreateFrame('Frame', nil, self)
-	self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+6))
-	self.Buffs.size = cfg.auraSize
-	self.Buffs.spacing = cfg.auraSpacing
-	self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Buffs.PostCreateIcon = core.PostCreateIcon
-	self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
+	if ( cfg.showAura ) then
+		self.Buffs = CreateFrame('Frame', nil, self)
+		self.Buffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Buffs:SetPoint('TOP', self, 'BOTTOM', 0, -(cfg.powerWidth+3+6))
+		self.Buffs.size = cfg.auraSize
+		self.Buffs.spacing = cfg.auraSpacing
+		self.Buffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Buffs.PostCreateIcon = core.PostCreateIcon
+		self.Buffs.CustomFilter = oUF_BuffFilter_Buffs
 
-	self.Debuffs = CreateFrame('Frame', nil, self)
-	self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
-	self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
-	self.Debuffs.size = cfg.auraSize
-	self.Debuffs.spacing = cfg.auraSpacing
-	self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
-	self.Debuffs.PostCreateIcon = core.PostCreateIcon
-	self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+		self.Debuffs = CreateFrame('Frame', nil, self)
+		self.Debuffs:SetSize(floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))*(cfg.auraSize+cfg.auraSpacing)-cfg.auraSpacing, cfg.auraSize)
+		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
+		self.Debuffs.size = cfg.auraSize
+		self.Debuffs.spacing = cfg.auraSpacing
+		self.Debuffs.num = floor(cfg.width/(cfg.auraSize+cfg.auraSpacing))
+		self.Debuffs.PostCreateIcon = core.PostCreateIcon
+		self.Debuffs.CustomFilter = oUF_BuffFilter_Debuffs
+	end
 
 	-- ***** BORDER *******************************************************************************
 	do
@@ -1223,12 +1344,30 @@ local function createPet(self)
 
 	-- ***** ENGINES ******************************************************************************
 	lib.ColorBorder(self.Border.tex, unpack(oUF_PhantomMenaceSettings.general.color.border))
-	-- self.Health.value:Hide()
 	self.Health.PostUpdate = core.UpdateHealth_pet
 end
 
---[[
+--[[ Creates (one) party frame
+	VOID createParty(FRAME self)
 
+	Used for units:
+		* party (header, so party1-party5)
+	Registered as oUF-style:
+		* oUF_PhantomMenace_party
+	Inherites:
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* name (inside the health-bar)
+		* power-bar
+		* (toggleable) Auras
+			* Auras are atm filtered with core.FilterSpecialsParty()
+		* RaidIcon
+		* LfD-role
+		* ReadyCheck
+		* RangeCheck
 ]]
 local function createParty(self)
 
@@ -1244,15 +1383,18 @@ local function createParty(self)
 
 	self.Power = core.CreatePowerbarOffsettedFG(self, 2*cfg.powerWidth, 0, -cfg.powerOffset, -cfg.powerWidth)
 
-	self.Auras = CreateFrame('Frame', nil, self)
-	self.Auras:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
-	self.Auras:SetPoint('RIGHT', self, 'LEFT', -(9+cfg.powerWidth), 0)
-	self.Auras.size = cfg.height
-	self.Auras['growth-x'] = 'LEFT'
-	self.Auras.initialAnchor = 'RIGHT'
-	self.Auras.spacing = cfg.auraSpacing
-	self.Auras.PostCreateIcon = core.PostCreateIcon
-	self.Auras.CustomFilter = core.FilterSpecialsParty
+	-- ***** BUFFS/DEBUFFS ************************************************************************
+	if ( cfg.showAura ) then
+		self.Auras = CreateFrame('Frame', nil, self)
+		self.Auras:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
+		self.Auras:SetPoint('RIGHT', self, 'LEFT', -(9+cfg.powerWidth), 0)
+		self.Auras.size = cfg.height
+		self.Auras['growth-x'] = 'LEFT'
+		self.Auras.initialAnchor = 'RIGHT'
+		self.Auras.spacing = cfg.auraSpacing
+		self.Auras.PostCreateIcon = core.PostCreateIcon
+		self.Auras.CustomFilter = core.FilterSpecialsParty
+	end
 
 	-- ***** BORDER ***************************************************************************
 	do
@@ -1349,8 +1491,24 @@ local function createParty(self)
 	self.UNIT_NAME_UPDATE = core.UpdateName
 end
 
---[[
+--[[ Creates (one) raid frame
+	VOID createRaid(FRAME self)
 
+	Used for units:
+		* raid (header, so raid1-raid40)
+	Registered as oUF-style:
+		* oUF_PhantomMenace_raid
+	Inherites:
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* power-bar
+		* name (inside the health-bar)
+		* RaidIcon
+		* ReadyCheck
+		* RangeCheck
 ]]
 local function createRaid(self)
 
@@ -1455,8 +1613,22 @@ local function createRaid(self)
 	self.UNIT_NAME_UPDATE = core.UpdateName
 end
 
---[[
+--[[ Creates (one) maintank frame
+	VOID createMT(FRAME self)
 
+	Used for units:
+		* maintanks (header, so maintank1-maintankX)
+	Registered as oUF-style:
+		* oUF_PhantomMenace_mt
+	Inherites:
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction and value
+		* Threat-highlighting
+		* name (inside the health-bar)
+		* RaidIcon
+		* RangeCheck
 ]]
 local function createMT(self)
 
@@ -1521,8 +1693,22 @@ local function createMT(self)
 	self.UNIT_NAME_UPDATE = core.UpdateName
 end
 
---[[
+--[[ Creates (one) grouptarget frame
+	VOID createGroupTarget(FRAME self)
 
+	Used for units:
+		* grouptarget (1-5)
+		* maintanktarget (1-X)
+	Registered as oUF-style:
+		* oUF_PhantomMenace_grouptarget
+	Inherites
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction
+		* Threat-highlighting
+		* name (inside the health-bar)
+		* RaidIcon
 ]]
 local function createGroupTarget(self)
 
@@ -1573,8 +1759,27 @@ local function createGroupTarget(self)
 	self.UNIT_NAME_UPDATE = core.UpdateName
 end
 
---[[
+--[[ Creates (one) boss frame
+	VOID createBoss(FRAME self)
 
+	Used for units:
+		* boss1
+		* boss2
+		* boss3
+		* boss4
+		* boss5
+	Registered as oUF-style:
+		* oUF_PhantomMenace_boss
+	Inherites:
+		core.CreateUnitFrame()
+
+	Features:
+		* health-bar with heal prediction (should not be needed, but hey...)
+		* Threat-highlighting
+		* power-bar
+		* name
+		* (toggleable) Buffs/Debuffs
+		* RaidIcon
 ]]
 local function createBoss(self)
 
@@ -1592,24 +1797,26 @@ local function createBoss(self)
 	self.Name:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -40, 3)
 
 	-- ***** BUFFS/DEBUFFS ************************************************************************
-	self.Buffs = CreateFrame('Frame', nil, self)
-	self.Buffs:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
-	self.Buffs:SetPoint('RIGHT', self, 'LEFT', -9, 0)
-	self.Buffs.size = cfg.height
-	self.Buffs.spacing = cfg.auraSpacing
-	self.Buffs.num = 3
-	self.Buffs['growth-x'] = 'LEFT'
-	self.Buffs.initialAnchor = 'RIGHT'
-	self.Buffs.PostCreateIcon = core.PostCreateIcon
+	if ( cfg.showAura ) then
+		self.Buffs = CreateFrame('Frame', nil, self)
+		self.Buffs:SetSize(3*cfg.height+2*cfg.auraSpacing, cfg.height)
+		self.Buffs:SetPoint('RIGHT', self, 'LEFT', -9, 0)
+		self.Buffs.size = cfg.height
+		self.Buffs.spacing = cfg.auraSpacing
+		self.Buffs.num = 3
+		self.Buffs['growth-x'] = 'LEFT'
+		self.Buffs.initialAnchor = 'RIGHT'
+		self.Buffs.PostCreateIcon = core.PostCreateIcon
 
-	self.Debuffs = CreateFrame('Frame', nil, self)
-	self.Debuffs.size = floor((cfg.width-6*cfg.auraSpacing)/7)
-	self.Debuffs:SetSize((7*(self.Debuffs.size+cfg.auraSpacing))-cfg.auraSpacing, self.Debuffs.size)
-	self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
-	self.Debuffs.spacing = cfg.auraSpacing
-	self.Debuffs.num = 7
-	self.Debuffs.PostCreateIcon = core.PostCreateIcon
-	self.Debuffs.CustomFilter = oUF_BuffFilter_PvEBossDebuffs
+		self.Debuffs = CreateFrame('Frame', nil, self)
+		self.Debuffs.size = floor((cfg.width-6*cfg.auraSpacing)/7)
+		self.Debuffs:SetSize((7*(self.Debuffs.size+cfg.auraSpacing))-cfg.auraSpacing, self.Debuffs.size)
+		self.Debuffs:SetPoint('BOTTOM', self, 'TOP', 0, cfg.auraSpacing)
+		self.Debuffs.spacing = cfg.auraSpacing
+		self.Debuffs.num = 7
+		self.Debuffs.PostCreateIcon = core.PostCreateIcon
+		self.Debuffs.CustomFilter = oUF_BuffFilter_PvEBossDebuffs
+	end
 
 	-- ***** BORDER *******************************************************************************
 	do
