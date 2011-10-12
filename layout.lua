@@ -2053,4 +2053,45 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 			end
 		end
 	end
+
+	--[[
+		Handle Blizzard RaidManager
+	]]
+	if ( oUF_PhantomMenaceSettings.configuration.hideRaidManager ) then
+		CompactRaidFrameManager:UnregisterAllEvents()
+		CompactRaidFrameManager:HookScript('OnShow', function(self) 
+			self:Hide() 
+		end)
+		CompactRaidFrameManager:Hide()
+	else
+		local hover = CreateFrame('Frame')
+
+		hover.func = function(self, event, addon)
+			if ( addon ~= 'Blizzard_CompactRaidFrames' ) then return end
+			_G['CompactRaidFrameManagerToggleButton']:EnableMouse(false)
+			local rfm = _G['CompactRaidFrameManager']
+			rfm:SetAlpha(0)
+			rfm.container:SetParent(UIParent)
+			rfm:SetScript('OnMouseUp', CompactRaidFrameManager_Toggle)
+			rfm:SetScript('OnEnter', function(self)
+				if ( self.collapsed ) then
+					UIFrameFadeIn(rfm, .2, 0, 1)
+				end
+			end)
+			rfm:SetScript("OnLeave", function(self)
+				if ( self.collapsed ) then
+					UIFrameFadeOut(rfm, .2, 1, 0)
+				end
+			end)
+			self:UnregisterEvent(event)
+			self:SetScript('OnEvent', nil)
+		end
+
+		if ( IsAddOnLoaded('Blizzard_CompactRaidFrames') ) then
+			hover.func(hover, 'ADDON_LOADED', 'Blizzard_CompactRaidFrames')
+		else
+			hover:RegisterEvent('ADDON_LOADED')
+			hover:SetScript('OnEvent', hover.func)
+		end
+	end
 end)
