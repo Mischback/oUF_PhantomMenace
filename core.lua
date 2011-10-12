@@ -99,6 +99,11 @@ core.CreateUnitFrame = function(self, width, height)
 	self.Overlay.tex:SetTexCoord(0, (width/256), 0, 1)
 	self.Overlay.tex:SetWidth(width)
 	self.Overlay.tex:SetVertexColor(1, 1, 1, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.highlightDebuffs ) then
+		self.Overlay:RegisterEvent('UNIT_AURA')
+		self.Overlay:RegisterEvent('UNIT_HEALTH')		-- ugly fix for updating the debuffHighlight if you target friendly players
+		self.Overlay:SetScript('OnEvent', lib.DBH.highlightDebuffs)
+	end
 
 	-- ***** TEXT *********************************************************************************
 	self.Text = CreateFrame('Frame', nil, self)

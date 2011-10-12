@@ -108,6 +108,8 @@ settings.SpecialAurasParty = {
 settings.init = {
 	['configuration'] = {
 		['healerMode'] = true,
+		['highlightDebuffs'] = true,
+		['showAllDebuffs'] = true,
 		['playerInGroup'] = true,
 		['strings'] = {
 			['off'] = 'off',
@@ -144,7 +146,8 @@ settings.init = {
 		['runes'] = {
 			['spacing'] = 9,
 		},
-		['glossIntensity'] = 0.7
+		['glossIntensity'] = 0.7, 
+		['debuffHighlightIntensity'] = 0.5
 	},
 	['playerCastbar'] = {
 		['width'] = 250,

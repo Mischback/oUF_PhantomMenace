@@ -265,5 +265,52 @@ lib.Vengeance.eventHandler = function(self, event, unit)
 	end
 end
 
+
+-- ************************************************************************************************
+-- ***** DEBUFF HIGHLIGHT *************************************************************************
+-- ************************************************************************************************
+lib.DBH = {
+	['abilities'] = {
+		['PRIEST'] = { ['Magic'] = true, ['Disease'] = true },
+		['SHAMAN'] = { ['Magic'] = true, ['Curse'] = true },
+		['PALADIN'] = { ['Magic'] = true, ['Poison'] = true, ['Disease'] = true },
+		['MAGE'] = { ['Curse'] = true },
+		['DRUID'] = { ['Magic'] = true, ['Curse'] = true, ['Poison'] = true }
+	}
+}
+lib.DBH.canDispel = lib.DBH.abilities[settings.playerClass]
+
+--[[ Iterates over all unit's debuffs and returns the first one with a given type
+	STRING getDebuffType(STRING unit)
+]]
+lib.DBH.getDebuffType = function(unit)
+	if ( not UnitCanAssist('player', unit) ) then return nil end
+	local i = 1
+	while true do
+		local name, _, _, _, debuffType = UnitAura(unit, i, 'HARMFUL')
+		if ( not name ) then break end
+		if ( debuffType ) then
+			return debuffType
+		end
+		i = i + 1
+	end
+end
+
+--[[ Sets the color of the Overlay-element to highlight a debuff
+	VOID highlightDebuffs(FRAME self, STRING event, STRING unit)
+]]
+lib.DBH.highlightDebuffs = function(self, event, unit)
+	if self:GetParent().unit ~= unit then return end
+
+	local debuffType = lib.DBH.getDebuffType(unit)
+	if ( debuffType and (oUF_PhantomMenaceSettings.configuration.showAllDebuffs or lib.DBH.canDispel[debuffType]) ) then
+		local color = DebuffTypeColor[debuffType]
+		local a = oUF_PhantomMenaceSettings.general.debuffHighlightIntensity
+		self.tex:SetVertexColor(color.r, color.g, color.b, a)
+	else
+		self.tex:SetVertexColor(1, 1, 1, 0)
+	end
+end
+
 -- ************************************************************************************************
 ns.lib = lib
