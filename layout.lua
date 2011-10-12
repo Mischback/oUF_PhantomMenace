@@ -1365,7 +1365,7 @@ end
 		* (toggleable) Auras
 			* Auras are atm filtered with core.FilterSpecialsParty()
 		* RaidIcon
-		* LfD-role
+		* (toggleable) LfD-role
 		* ReadyCheck
 		* RangeCheck
 ]]
@@ -1462,10 +1462,12 @@ local function createParty(self)
 	self.RaidIcon.Override = core.UpdateName
 
 	-- ***** LFD ROLE *****************************************************************************
-	self.LFDRole = self.Border:CreateTexture(nil, 'OVERLAY')
-	self.LFDRole:SetSize(16, 16)
-	self.LFDRole:SetPoint('TOPLEFT', self, 'TOPLEFT', 1, -1)
-	self.LFDRole.Override = core.LFDOverride
+	if ( cfg.showLFD ) then
+		self.LFDRole = self.Border:CreateTexture(nil, 'OVERLAY')
+		self.LFDRole:SetSize(16, 16)
+		self.LFDRole:SetPoint('TOPLEFT', self, 'TOPLEFT', 1, -1)
+		self.LFDRole.Override = core.LFDOverride
+	end
 
 	-- ***** READY CHECK **************************************************************************
 	self.ReadyCheck = self.Border:CreateTexture(nil, 'OVERLAY')
@@ -1894,8 +1896,13 @@ PhantomMenace:RegisterEvent('ADDON_LOADED')
 PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	if ( addon ~= ADDON_NAME ) then return end
 
-	oUF_PhantomMenaceSettings = settings.init
-	oUF_PhantomMenaceSettings.colors = settings.colors
+--	if ( not oUF_PhantomMenaceSettings ) then
+--		lib.debugging('setting up SavedVariables')
+		oUF_PhantomMenaceSettings = settings.init
+		oUF_PhantomMenaceSettings.colors = settings.colors
+		oUF_PhantomMenaceSettings.SpecialAurasFocus = settings.SpecialAurasFocus
+		oUF_PhantomMenaceSettings.SpecialAurasParty = settings.SpecialAurasParty
+--	end
 
 	oUF:RegisterStyle('oUF_PhantomMenace_player', createPlayer)
 	oUF:RegisterStyle('oUF_PhantomMenace_castbar', createPlayerCastbar)
@@ -1990,7 +1997,7 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_grouptarget')
 	oUF:SpawnHeader('oUF_PhantomMenace_partytarget', nil, 
-		'custom [@raid1,exists] show; [@raid6,exists] hide; [group:party,nogroup:raid] show; hide',
+		'custom [@raid6,exists] hide; [@raid1,exists] show; [group:party,nogroup:raid] show; hide',
 		'showPlayer', oUF_PhantomMenaceSettings.configuration.playerInGroup,
 		'showParty', true,
 		'showSolo', false,
@@ -2027,10 +2034,10 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 
 	oUF:SetActiveStyle('oUF_PhantomMenace_boss')
 	oUF:Spawn('boss1', 'oUF_PhantomMenace_boss1'):SetPoint('CENTER', UIParent, 'CENTER', 300, 0)
-	oUF:Spawn('boss2', 'oUF_PhantomMenace_boss2'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss1', 'TOP', 0, 30)
-	oUF:Spawn('boss3', 'oUF_PhantomMenace_boss3'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss2', 'TOP', 0, 30)
-	oUF:Spawn('boss4', 'oUF_PhantomMenace_boss4'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss3', 'TOP', 0, 30)
-	oUF:Spawn('boss5', 'oUF_PhantomMenace_boss5'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss4', 'TOP', 0, 30)
+	oUF:Spawn('boss2', 'oUF_PhantomMenace_boss2'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss1', 'TOP', 0, 40)
+	oUF:Spawn('boss3', 'oUF_PhantomMenace_boss3'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss2', 'TOP', 0, 40)
+	oUF:Spawn('boss4', 'oUF_PhantomMenace_boss4'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss3', 'TOP', 0, 40)
+	oUF:Spawn('boss5', 'oUF_PhantomMenace_boss5'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss4', 'TOP', 0, 40)
 
 	--[[
 		Remove all focus stuff from menus

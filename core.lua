@@ -524,7 +524,7 @@ end
 ]]
 core.FilterSpecialsFocus = function(icons, unit, icon, name, rank, texture, count, dtype, duration, timeLeft, caster, isStealable, shouldConsolidate, spellID)
 	if ( caster ~= 'player' ) then return false end
-	return lib.in_array(spellID, settings.SpecialAurasFocus)
+	return lib.in_array(spellID, oUF_PhantomMenaceSettings.SpecialAurasFocus)
 end
 
 --[[ Filters special auras on party-unitframe
@@ -534,7 +534,7 @@ end
 ]]
 core.FilterSpecialsParty = function(icons, unit, icon, name, rank, texture, count, dtype, duration, timeLeft, caster, isStealable, shouldConsolidate, spellID)
 	if ( caster ~= 'player' ) then return false end
-	return lib.in_array(spellID, settings.SpecialAurasParty)
+	return lib.in_array(spellID, oUF_PhantomMenaceSettings.SpecialAurasParty)
 end
 
 -- ************************************************************************************************
