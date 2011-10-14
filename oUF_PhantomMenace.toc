@@ -2,7 +2,7 @@
 ## Author: Mischback
 ## X-URI: https://github.com/Mischback/oUF_PhantomMenace
 ## Title: oUF_|cff0099ffPhantomMenace|r
-## Version: 1.0
+## Version: 1.1
 ## Notes: Provides unitframes in the PhantomMenace-style.
 ## X-Category: UnitFrame
 ## DefaultState: Disabled

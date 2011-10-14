@@ -1,12 +1,12 @@
 --[[ SETTINGS
 	@file:			settings.lua
-	@file-version:	1.0
+	@file-version:	1.1
 	@project:		oUF_PhantomMenace
 	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
 	@author:		Mischback
 
 	@project-description:
-		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+		This is a layout for the incredibly awesome oUF by haste. You can find this addon 
 			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
 			@github:		https://github.com/haste/oUF
 		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
@@ -108,9 +108,25 @@ settings.SpecialAurasParty = {
 settings.init = {
 	['configuration'] = {
 		['healerMode'] = true,
-		['highlightDebuffs'] = true,
-		['showAllDebuffs'] = true,
+		['highlightDebuffs'] = true,			-- new in 1.1!
+		['showAllDebuffs'] = true,				-- new in 1.1!
 		['playerInGroup'] = true,
+		['hideRaidManager'] = false, 			-- new in 1.1!
+		['showUnit'] = {						-- new in 1.1!
+			['player'] = true,					-- new in 1.1!
+			['playerCastbar'] = true,			-- new in 1.1!
+			['playerPet'] = true,				-- new in 1.1!
+			['target'] = true,					-- new in 1.1!
+			['focus'] = true,					-- new in 1.1!
+			['targettarget'] = true,			-- new in 1.1!
+			['focustarget'] = true,				-- new in 1.1!
+			['party'] = true,					-- new in 1.1!
+			['raid'] = true,					-- new in 1.1!
+			['maintank'] = true,				-- new in 1.1!
+			['partytarget'] = true,				-- new in 1.1!
+			['mtTarget'] = true,				-- new in 1.1!
+			['boss'] = true,					-- new in 1.1!
+		},
 		['strings'] = {
 			['off'] = 'off',
 			['dead'] = 'dead',
@@ -147,7 +163,7 @@ settings.init = {
 			['spacing'] = 9,
 		},
 		['glossIntensity'] = 0.7, 
-		['debuffHighlightIntensity'] = 0.5
+		['debuffHighlightIntensity'] = 0.7		-- new in 1.1!
 	},
 	['playerCastbar'] = {
 		['width'] = 250,

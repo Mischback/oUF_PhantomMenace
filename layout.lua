@@ -1,12 +1,12 @@
 --[[ LAYOUT
 	@file:			layout.lua
-	@file-version:	1.0
+	@file-version:	1.1
 	@project:		oUF_PhantomMenace
 	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
 	@author:		Mischback
 
 	@project-description:
-		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+		This is a layout for the incredibly awesome oUF by haste. You can find this addon 
 			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
 			@github:		https://github.com/haste/oUF
 		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
@@ -1916,128 +1916,156 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	oUF:RegisterStyle('oUF_PhantomMenace_grouptarget', createGroupTarget)
 	oUF:RegisterStyle('oUF_PhantomMenace_boss', createBoss)
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_player')
-	oUF:Spawn('player', 'oUF_PhantomMenace_player'):SetPoint('RIGHT', UIParent, 'CENTER', -100, -200)
-	oUF:SetActiveStyle('oUF_PhantomMenace_castbar')
-	oUF:Spawn('player', 'oUF_PhantomMenace_castbar'):SetPoint('CENTER', UIParent, 'CENTER', 0, -230)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.player ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_player')
+		oUF:Spawn('player', 'oUF_PhantomMenace_player'):SetPoint('RIGHT', UIParent, 'CENTER', -100, -200)
+	end
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.playerCastbar ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_castbar')
+		oUF:Spawn('player', 'oUF_PhantomMenace_castbar'):SetPoint('CENTER', UIParent, 'CENTER', 0, -230)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_pet')
-	oUF:Spawn('pet', 'oUF_PhantomMenace_pet'):SetPoint('RIGHT', 'oUF_PhantomMenace_player', 'LEFT', -15, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.playerPet ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_pet')
+		oUF:Spawn('pet', 'oUF_PhantomMenace_pet'):SetPoint('RIGHT', 'oUF_PhantomMenace_player', 'LEFT', -15, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_target')
-	oUF:Spawn('target', 'oUF_PhantomMenace_target'):SetPoint('LEFT', UIParent, 'CENTER', 100, -200)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.target ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_target')
+		oUF:Spawn('target', 'oUF_PhantomMenace_target'):SetPoint('LEFT', UIParent, 'CENTER', 100, -200)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_focus')
-	oUF:Spawn('focus', 'oUF_PhantomMenace_focus'):SetPoint('LEFT', UIParent, 'CENTER', 300, 0)	
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.focus ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_focus')
+		oUF:Spawn('focus', 'oUF_PhantomMenace_focus'):SetPoint('LEFT', UIParent, 'CENTER', 300, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_targettarget')
-	oUF:Spawn('targettarget', 'oUF_PhantomMenace_targettarget'):SetPoint('LEFT', 'oUF_PhantomMenace_target', 'RIGHT', 15, 0)
-	oUF:Spawn('focustarget', 'oUF_PhantomMenace_focustarget'):SetPoint('LEFT', 'oUF_PhantomMenace_focus', 'RIGHT', 10, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.targettarget ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_targettarget')
+		oUF:Spawn('targettarget', 'oUF_PhantomMenace_targettarget'):SetPoint('LEFT', 'oUF_PhantomMenace_target', 'RIGHT', 15, 0)
+	end
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.focustarget ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_targettarget')
+		oUF:Spawn('focustarget', 'oUF_PhantomMenace_focustarget'):SetPoint('LEFT', 'oUF_PhantomMenace_focus', 'RIGHT', 10, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_party')
-	oUF:SpawnHeader('oUF_PhantomMenace_party', nil, 
-		'custom [@raid6,exists] hide; [@raid1,exists] show; [group:party,nogroup:raid] show; hide',
-		'showPlayer', oUF_PhantomMenaceSettings.configuration.playerInGroup,
-		'showParty', true,
-		'showSolo', false,
-		'showRaid', false,
-		'groupBy', 'ROLE',
-		'groupingOrder', 'TANK,HEAL,DAMAGE',
-		'sortMethod', 'NAME',
-		'point', 'BOTTOM',
-		'maxColumns', 1,
-		'unitsPerColumn', 5,
-		'columnSpacing', 0, 
-		'xOffset', oUF_PhantomMenaceSettings.raid.xOffset,
-		'yOffset', oUF_PhantomMenaceSettings.raid.yOffset,
-		'columnAnchorPoint', 'BOTTOM',
-		'oUF-initialConfigFunction', format([[
-			self:SetWidth(%d)
-			self:SetHeight(%d)
-		]], oUF_PhantomMenaceSettings.raid.width, oUF_PhantomMenaceSettings.raid.height)
-	):SetPoint('LEFT', UIParent, 'LEFT', 100, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.party ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_party')
+		oUF:SpawnHeader('oUF_PhantomMenace_party', nil, 
+			'custom [@raid6,exists] hide; [@raid1,exists] show; [group:party,nogroup:raid] show; hide',
+			'showPlayer', oUF_PhantomMenaceSettings.configuration.playerInGroup,
+			'showParty', true,
+			'showSolo', false,
+			'showRaid', false,
+			'groupBy', 'ROLE',
+			'groupingOrder', 'TANK,HEAL,DAMAGE',
+			'sortMethod', 'NAME',
+			'point', 'BOTTOM',
+			'maxColumns', 1,
+			'unitsPerColumn', 5,
+			'columnSpacing', 0, 
+			'xOffset', oUF_PhantomMenaceSettings.raid.xOffset,
+			'yOffset', oUF_PhantomMenaceSettings.raid.yOffset,
+			'columnAnchorPoint', 'BOTTOM',
+			'oUF-initialConfigFunction', format([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]], oUF_PhantomMenaceSettings.raid.width, oUF_PhantomMenaceSettings.raid.height)
+		):SetPoint('LEFT', UIParent, 'LEFT', 100, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_raid')
-	-- oUF:SpawnHeader('oUF_PhantomMenace_raid', nil, 'solo,raid',
-	oUF:SpawnHeader('oUF_PhantomMenace_raid', nil, 
-		'custom [@raid6,exists] show; hide',
-		'showPlayer', true,
-		'showParty', false,
-		'showSolo', true,
-		'showRaid', true,
-		'groupFilter', '1,2,3,4,5,6,7,8',
-		'groupBy', 'GROUP',
-		'groupingOrder', '1,2,3,4,5,6,7,8',
-		'sortMethod', 'INDEX',
-		'point', 'LEFT',
-		'maxColumns', 5,
-		'unitsPerColumn', 5,
-		'columnSpacing', oUF_PhantomMenaceSettings.raid.yOffset, 
-		'xOffset', oUF_PhantomMenaceSettings.raid.xOffset,
-		'yOffset', 0,
-		'columnAnchorPoint', 'BOTTOM',
-		'oUF-initialConfigFunction', format([[
-			self:SetWidth(%d)
-			self:SetHeight(%d)
-		]], oUF_PhantomMenaceSettings.raid.width, oUF_PhantomMenaceSettings.raid.height)
-	):SetPoint('LEFT', UIParent, 'LEFT', 100, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.raid ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_raid')
+		-- oUF:SpawnHeader('oUF_PhantomMenace_raid', nil, 'solo,raid',
+		oUF:SpawnHeader('oUF_PhantomMenace_raid', nil, 
+			'custom [@raid6,exists] show; hide',
+			'showPlayer', true,
+			'showParty', false,
+			'showSolo', true,
+			'showRaid', true,
+			'groupFilter', '1,2,3,4,5,6,7,8',
+			'groupBy', 'GROUP',
+			'groupingOrder', '1,2,3,4,5,6,7,8',
+			'sortMethod', 'INDEX',
+			'point', 'LEFT',
+			'maxColumns', 5,
+			'unitsPerColumn', 5,
+			'columnSpacing', oUF_PhantomMenaceSettings.raid.yOffset, 
+			'xOffset', oUF_PhantomMenaceSettings.raid.xOffset,
+			'yOffset', 0,
+			'columnAnchorPoint', 'BOTTOM',
+			'oUF-initialConfigFunction', format([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]], oUF_PhantomMenaceSettings.raid.width, oUF_PhantomMenaceSettings.raid.height)
+		):SetPoint('LEFT', UIParent, 'LEFT', 100, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_mt')
-	oUF:SpawnHeader('oUF_PhantomMenace_mt', nil, 
-		'raid', 
-		'showRaid', true, 
-		'yOffset', 8, 
-		'groupFilter', 'MAINTANK',
-		'point', 'BOTTOM',
-		'oUF-initialConfigFunction', format([[
-			self:SetWidth(%d)
-			self:SetHeight(%d)
-		]], oUF_PhantomMenaceSettings.maintank.width, oUF_PhantomMenaceSettings.maintank.height)
-	):SetPoint('TOPLEFT', UIParent, 'LEFT', 20, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.maintank ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_mt')
+		oUF:SpawnHeader('oUF_PhantomMenace_mt', nil, 
+			'raid', 
+			'showRaid', true, 
+			'yOffset', 8, 
+			'groupFilter', 'MAINTANK',
+			'point', 'BOTTOM',
+			'oUF-initialConfigFunction', format([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+			]], oUF_PhantomMenaceSettings.maintank.width, oUF_PhantomMenaceSettings.maintank.height)
+		):SetPoint('TOPLEFT', UIParent, 'LEFT', 20, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_grouptarget')
-	oUF:SpawnHeader('oUF_PhantomMenace_partytarget', nil, 
-		'custom [@raid6,exists] hide; [@raid1,exists] show; [group:party,nogroup:raid] show; hide',
-		'showPlayer', oUF_PhantomMenaceSettings.configuration.playerInGroup,
-		'showParty', true,
-		'showSolo', false,
-		'showRaid', false,
-		'groupBy', 'ROLE',
-		'groupingOrder', 'TANK,HEAL,DAMAGE',
-		'sortMethod', 'NAME',
-		'point', 'BOTTOM',
-		'maxColumns', 1,
-		'unitsPerColumn', 5,
-		'columnSpacing', 0, 
-		'xOffset', oUF_PhantomMenaceSettings.raid.xOffset,
-		'yOffset', oUF_PhantomMenaceSettings.raid.yOffset,
-		'columnAnchorPoint', 'BOTTOM',
-		'oUF-initialConfigFunction', format([[
-			self:SetWidth(%d)
-			self:SetHeight(%d)
-			self:SetAttribute('unitsuffix', 'target')
-		]], oUF_PhantomMenaceSettings.grouptarget.width, oUF_PhantomMenaceSettings.grouptarget.height)
-	):SetPoint('LEFT', 'oUF_PhantomMenace_party', 'RIGHT', 10, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.partytarget ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_grouptarget')
+		oUF:SpawnHeader('oUF_PhantomMenace_partytarget', nil, 
+			'custom [@raid6,exists] hide; [@raid1,exists] show; [group:party,nogroup:raid] show; hide',
+			'showPlayer', oUF_PhantomMenaceSettings.configuration.playerInGroup,
+			'showParty', true,
+			'showSolo', false,
+			'showRaid', false,
+			'groupBy', 'ROLE',
+			'groupingOrder', 'TANK,HEAL,DAMAGE',
+			'sortMethod', 'NAME',
+			'point', 'BOTTOM',
+			'maxColumns', 1,
+			'unitsPerColumn', 5,
+			'columnSpacing', 0, 
+			'xOffset', oUF_PhantomMenaceSettings.raid.xOffset,
+			'yOffset', oUF_PhantomMenaceSettings.raid.yOffset,
+			'columnAnchorPoint', 'BOTTOM',
+			'oUF-initialConfigFunction', format([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+				self:SetAttribute('unitsuffix', 'target')
+			]], oUF_PhantomMenaceSettings.grouptarget.width, oUF_PhantomMenaceSettings.grouptarget.height)
+		):SetPoint('LEFT', 'oUF_PhantomMenace_party', 'RIGHT', 10, 0)
+	end
 
-	oUF:SpawnHeader('oUF_PhantomMenace_mttarget', nil, 
-		'raid', 
-		'showRaid', true, 
-		'yOffset', 8, 
-		'groupFilter', 'MAINTANK',
-		'point', 'BOTTOM',
-		'oUF-initialConfigFunction', format([[
-			self:SetWidth(%d)
-			self:SetHeight(%d)
-			self:SetAttribute('unitsuffix', 'target')
-		]], oUF_PhantomMenaceSettings.grouptarget.width, oUF_PhantomMenaceSettings.grouptarget.height)
-	):SetPoint('TOPLEFT', 'oUF_PhantomMenace_mt', 'TOPRIGHT', 10, 0)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.mtTarget ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_grouptarget')
+		oUF:SpawnHeader('oUF_PhantomMenace_mttarget', nil, 
+			'raid', 
+			'showRaid', true, 
+			'yOffset', 8, 
+			'groupFilter', 'MAINTANK',
+			'point', 'BOTTOM',
+			'oUF-initialConfigFunction', format([[
+				self:SetWidth(%d)
+				self:SetHeight(%d)
+				self:SetAttribute('unitsuffix', 'target')
+			]], oUF_PhantomMenaceSettings.grouptarget.width, oUF_PhantomMenaceSettings.grouptarget.height)
+		):SetPoint('TOPLEFT', 'oUF_PhantomMenace_mt', 'TOPRIGHT', 10, 0)
+	end
 
-	oUF:SetActiveStyle('oUF_PhantomMenace_boss')
-	oUF:Spawn('boss1', 'oUF_PhantomMenace_boss1'):SetPoint('CENTER', UIParent, 'CENTER', 300, 0)
-	oUF:Spawn('boss2', 'oUF_PhantomMenace_boss2'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss1', 'TOP', 0, 40)
-	oUF:Spawn('boss3', 'oUF_PhantomMenace_boss3'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss2', 'TOP', 0, 40)
-	oUF:Spawn('boss4', 'oUF_PhantomMenace_boss4'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss3', 'TOP', 0, 40)
-	oUF:Spawn('boss5', 'oUF_PhantomMenace_boss5'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss4', 'TOP', 0, 40)
+	if ( oUF_PhantomMenaceSettings.configuration.showUnit.boss ) then
+		oUF:SetActiveStyle('oUF_PhantomMenace_boss')
+		oUF:Spawn('boss1', 'oUF_PhantomMenace_boss1'):SetPoint('CENTER', UIParent, 'CENTER', 300, 0)
+		oUF:Spawn('boss2', 'oUF_PhantomMenace_boss2'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss1', 'TOP', 0, 40)
+		oUF:Spawn('boss3', 'oUF_PhantomMenace_boss3'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss2', 'TOP', 0, 40)
+		oUF:Spawn('boss4', 'oUF_PhantomMenace_boss4'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss3', 'TOP', 0, 40)
+		oUF:Spawn('boss5', 'oUF_PhantomMenace_boss5'):SetPoint('BOTTOM', 'oUF_PhantomMenace_boss4', 'TOP', 0, 40)
+	end
 
 	--[[
 		Remove all focus stuff from menus
@@ -2045,9 +2073,9 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 	do -- fix SET_FOCUS & CLEAR_FOCUS errors
 		for k,v in pairs(UnitPopupMenus) do
 			for x,y in pairs(UnitPopupMenus[k]) do
-				if y == "SET_FOCUS" then
+				if y == 'SET_FOCUS' then
 					table.remove(UnitPopupMenus[k],x)
-				elseif y == "CLEAR_FOCUS" then
+				elseif y == 'CLEAR_FOCUS' then
 					table.remove(UnitPopupMenus[k],x)
 				end
 			end
@@ -2078,7 +2106,7 @@ PhantomMenace:SetScript('OnEvent', function(self, event, addon)
 					UIFrameFadeIn(rfm, .2, 0, 1)
 				end
 			end)
-			rfm:SetScript("OnLeave", function(self)
+			rfm:SetScript('OnLeave', function(self)
 				if ( self.collapsed ) then
 					UIFrameFadeOut(rfm, .2, 1, 0)
 				end

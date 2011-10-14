@@ -1,12 +1,12 @@
 --[[ LIBRARY
 	@file:			lib.lua
-	@file-version:	1.0
+	@file-version:	1.1
 	@project:		oUF_PhantomMenace
 	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
 	@author:		Mischback
 
 	@project-description:
-		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+		This is a layout for the incredibly awesome oUF by haste. You can find this addon 
 			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
 			@github:		https://github.com/haste/oUF
 		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
@@ -34,7 +34,7 @@ local lib = {}
 	VOID debugging(STRING text)
 ]]
 lib.debugging = function(text)
-	DEFAULT_CHAT_FRAME:AddMessage('|cffffd700oUF_PhantomMenace:|r |cffeeeeee'..text..'|r')
+	DEFAULT_CHAT_FRAME:AddMessage('|cff0099ffPhantomMenace:|r |cffeeeeee'..text..'|r')
 end
 
 --[[ Is a value in a table?
@@ -285,15 +285,21 @@ lib.DBH.canDispel = lib.DBH.abilities[settings.playerClass]
 ]]
 lib.DBH.getDebuffType = function(unit)
 	if ( not UnitCanAssist('player', unit) ) then return nil end
+	local storedDebuffType = nil
 	local i = 1
 	while true do
 		local name, _, _, _, debuffType = UnitAura(unit, i, 'HARMFUL')
 		if ( not name ) then break end
 		if ( debuffType ) then
-			return debuffType
+			if ( lib.DBH.canDispel[debuffType] ) then
+				return debuffType
+			else
+				storedDebuffType = debuffType
+			end
 		end
 		i = i + 1
 	end
+	return storedDebuffType
 end
 
 --[[ Sets the color of the Overlay-element to highlight a debuff

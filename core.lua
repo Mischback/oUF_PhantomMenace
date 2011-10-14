@@ -1,12 +1,12 @@
 --[[ CORE
 	@file:			core.lua
-	@file-version:	1.0
+	@file-version:	1.1
 	@project:		oUF_PhantomMenace
 	@project-url:	https://github.com/Mischback/oUF_PhantomMenace
 	@author:		Mischback
 
 	@project-description:
-		This is a layout for the incredible awesome oUF by haste. You can find this addon 
+		This is a layout for the incredibly awesome oUF by haste. You can find this addon 
 			@wowinterface:	http://www.wowinterface.com/downloads/info9994-oUF.html
 			@github:		https://github.com/haste/oUF
 		PLEASE NOTE: This layout comes with absolute no warranty and "as it is". It was created to 
